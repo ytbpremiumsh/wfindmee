@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Edit, Trash2, Eye, Loader2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, Loader2, ListOrdered, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useQuizzes, useDeleteQuiz } from '@/hooks/useQuizzes';
 import { QuizEditorDialog } from '@/components/admin/QuizEditorDialog';
@@ -29,6 +30,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 const AdminQuizzes = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingQuizId, setEditingQuizId] = useState<string | null>(null);
@@ -170,7 +172,25 @@ const AdminQuizzes = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          title="Lihat Pertanyaan"
+                          onClick={() => navigate(`/admin/quizzes/${quiz.id}/questions`)}
+                        >
+                          <ListOrdered className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          title="Lihat Hasil"
+                          onClick={() => navigate(`/admin/quizzes/${quiz.id}/results`)}
+                        >
+                          <Target className="h-4 w-4" />
+                        </Button>
                         <Button 
                           variant="ghost" 
                           size="icon" 

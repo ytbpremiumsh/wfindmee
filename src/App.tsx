@@ -15,6 +15,8 @@ import About from "./pages/About";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminQuizzes from "./pages/admin/AdminQuizzes";
+import AdminQuizQuestions from "./pages/admin/AdminQuizQuestions";
+import AdminQuizResults from "./pages/admin/AdminQuizResults";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminContent from "./pages/admin/AdminContent";
 import NotFound from "./pages/NotFound";
@@ -48,6 +50,16 @@ const App = () => (
             <Route path="/admin/quizzes" element={
               <ProtectedRoute requireAdmin>
                 <AdminQuizzes />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/quizzes/:quizId/questions" element={
+              <ProtectedRoute requireAdmin>
+                <AdminQuizQuestions />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/quizzes/:quizId/results" element={
+              <ProtectedRoute requireAdmin>
+                <AdminQuizResults />
               </ProtectedRoute>
             } />
             <Route path="/admin/settings" element={
