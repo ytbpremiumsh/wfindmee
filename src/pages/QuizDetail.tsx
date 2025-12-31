@@ -1,23 +1,36 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Clock, HelpCircle, ArrowLeft, Play } from 'lucide-react';
+import { Clock, HelpCircle, ArrowLeft, Play, Loader2 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { AdBanner } from '@/components/ads/AdBanner';
-import { mockQuizzes } from '@/data/mockQuizzes';
-import { QuizCategory } from '@/types/quiz';
+import { useQuiz } from '@/hooks/useQuizzes';
+import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 
-const categoryLabels: Record<QuizCategory, string> = {
-  personality: 'Kepribadian',
+const categoryLabels: Record<string, string> = {
+  kepribadian: 'Kepribadian',
   fun: 'Fun',
   mbti: 'MBTI',
-  love: 'Cinta',
-  career: 'Karir',
+  karir: 'Karir',
+  hubungan: 'Hubungan',
+  kesehatan: 'Kesehatan',
+  lainnya: 'Lainnya',
 };
 
 const QuizDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const quiz = mockQuizzes.find(q => q.id === id);
+  const { data: quiz, isLoading } = useQuiz(id);
+  const { data: questions } = useQuizQuestions(id);
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto py-16 flex justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
 
   if (!quiz) {
     return (
@@ -35,12 +48,15 @@ const QuizDetail = () => {
     );
   }
 
+  const category = quiz.category || 'lainnya';
+  const questionCount = questions?.length || 0;
+
   return (
     <Layout>
       {/* Hero Banner */}
       <div className="relative h-64 md:h-80 overflow-hidden">
         <img
-          src={quiz.banner || quiz.thumbnail}
+          src={quiz.banner_url || quiz.thumbnail_url || '/placeholder.svg'}
           alt={quiz.title}
           className="w-full h-full object-cover"
         />
@@ -63,8 +79,8 @@ const QuizDetail = () => {
           {/* Card */}
           <div className="bg-card rounded-2xl shadow-xl p-6 md:p-8">
             {/* Category Badge */}
-            <span className={`category-badge category-badge-${quiz.category} mb-4`}>
-              {categoryLabels[quiz.category]}
+            <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary mb-4">
+              {categoryLabels[category] || category}
             </span>
 
             {/* Title */}
@@ -74,18 +90,18 @@ const QuizDetail = () => {
             <div className="flex flex-wrap items-center gap-4 mb-6 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                <span>{quiz.estimatedTime} menit</span>
+                <span>{quiz.estimated_time || 5} menit</span>
               </div>
               <div className="flex items-center gap-2">
                 <HelpCircle className="h-4 w-4" />
-                <span>{quiz.questionCount} pertanyaan</span>
+                <span>{questionCount} pertanyaan</span>
               </div>
             </div>
 
             {/* Description */}
             <div className="prose prose-sm max-w-none mb-8">
               <p className="text-muted-foreground leading-relaxed">
-                {quiz.description}
+                {quiz.description || quiz.short_description || 'Quiz menarik untuk kamu!'}
               </p>
             </div>
 

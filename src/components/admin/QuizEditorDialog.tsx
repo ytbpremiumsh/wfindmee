@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,8 @@ import {
 } from '@/components/ui/select';
 import { useQuiz, useCreateQuiz, useUpdateQuiz } from '@/hooks/useQuizzes';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface QuizEditorDialogProps {
   open: boolean;
@@ -58,6 +60,15 @@ export function QuizEditorDialog({ open, onOpenChange, quizId }: QuizEditorDialo
     iframe_url: '',
   });
 
+  // AI Generation settings
+  const [aiSettings, setAiSettings] = useState({
+    generateWithAI: true,
+    questionCount: 10,
+    optionCount: 4,
+    resultCount: 4,
+  });
+  const [isGenerating, setIsGenerating] = useState(false);
+
   useEffect(() => {
     if (quiz) {
       setFormData({
@@ -73,6 +84,8 @@ export function QuizEditorDialog({ open, onOpenChange, quizId }: QuizEditorDialo
         is_iframe: quiz.is_iframe ?? false,
         iframe_url: quiz.iframe_url ?? '',
       });
+      // Disable AI generation for existing quizzes
+      setAiSettings(prev => ({ ...prev, generateWithAI: false }));
     } else if (!quizId) {
       setFormData({
         title: '',
@@ -87,10 +100,16 @@ export function QuizEditorDialog({ open, onOpenChange, quizId }: QuizEditorDialo
         is_iframe: false,
         iframe_url: '',
       });
+      setAiSettings({
+        generateWithAI: true,
+        questionCount: 10,
+        optionCount: 4,
+        resultCount: 4,
+      });
     }
   }, [quiz, quizId]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (quizId) {
       updateQuiz.mutate({
         id: quizId,
@@ -100,17 +119,52 @@ export function QuizEditorDialog({ open, onOpenChange, quizId }: QuizEditorDialo
         onSuccess: () => onOpenChange(false),
       });
     } else {
+      // Create new quiz
       createQuiz.mutate({
         ...formData,
         category: formData.category as any,
         created_by: user?.id,
       }, {
-        onSuccess: () => onOpenChange(false),
+        onSuccess: async (data) => {
+          if (aiSettings.generateWithAI && data?.id) {
+            // Generate quiz content with AI
+            setIsGenerating(true);
+            try {
+              const { data: funcData, error: funcError } = await supabase.functions.invoke('generate-quiz', {
+                body: {
+                  quizId: data.id,
+                  title: formData.title,
+                  category: formData.category,
+                  questionCount: aiSettings.questionCount,
+                  optionCount: aiSettings.optionCount,
+                  resultCount: aiSettings.resultCount,
+                }
+              });
+
+              if (funcError) throw funcError;
+
+              toast({
+                title: 'Berhasil!',
+                description: `Quiz berhasil dibuat dengan ${aiSettings.questionCount} pertanyaan dan ${aiSettings.resultCount} tipe hasil.`,
+              });
+            } catch (error) {
+              console.error('Error generating quiz:', error);
+              toast({
+                title: 'Quiz dibuat',
+                description: 'Quiz dibuat tapi gagal generate konten AI. Silakan tambah pertanyaan manual.',
+                variant: 'destructive',
+              });
+            } finally {
+              setIsGenerating(false);
+            }
+          }
+          onOpenChange(false);
+        },
       });
     }
   };
 
-  const isSaving = createQuiz.isPending || updateQuiz.isPending;
+  const isSaving = createQuiz.isPending || updateQuiz.isPending || isGenerating;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -241,6 +295,75 @@ export function QuizEditorDialog({ open, onOpenChange, quizId }: QuizEditorDialo
                 />
               </div>
             )}
+
+            {/* AI Generation Settings - Only for new quizzes */}
+            {!quizId && !formData.is_iframe && (
+              <div className="border rounded-lg p-4 bg-primary/5 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <Label className="text-base font-semibold">Generate dengan AI</Label>
+                  <Switch
+                    checked={aiSettings.generateWithAI}
+                    onCheckedChange={(checked) => setAiSettings({ ...aiSettings, generateWithAI: checked })}
+                  />
+                </div>
+
+                {aiSettings.generateWithAI && (
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="questionCount">Jumlah Soal</Label>
+                      <Select 
+                        value={aiSettings.questionCount.toString()} 
+                        onValueChange={(v) => setAiSettings({ ...aiSettings, questionCount: parseInt(v) })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[5, 10, 15, 20, 25, 30].map((n) => (
+                            <SelectItem key={n} value={n.toString()}>{n} Soal</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="optionCount">Pilihan/Soal</Label>
+                      <Select 
+                        value={aiSettings.optionCount.toString()} 
+                        onValueChange={(v) => setAiSettings({ ...aiSettings, optionCount: parseInt(v) })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[2, 3, 4, 5].map((n) => (
+                            <SelectItem key={n} value={n.toString()}>{n} Pilihan</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="resultCount">Jumlah Hasil</Label>
+                      <Select 
+                        value={aiSettings.resultCount.toString()} 
+                        onValueChange={(v) => setAiSettings({ ...aiSettings, resultCount: parseInt(v) })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[2, 3, 4, 5, 6, 8].map((n) => (
+                            <SelectItem key={n} value={n.toString()}>{n} Tipe Hasil</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -248,7 +371,7 @@ export function QuizEditorDialog({ open, onOpenChange, quizId }: QuizEditorDialo
           <Button variant="outline" onClick={() => onOpenChange(false)}>Batal</Button>
           <Button onClick={handleSave} disabled={isSaving || !formData.title}>
             {isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-            {quizId ? 'Simpan' : 'Buat Quiz'}
+            {isGenerating ? 'Generating...' : quizId ? 'Simpan' : 'Buat Quiz'}
           </Button>
         </DialogFooter>
       </DialogContent>

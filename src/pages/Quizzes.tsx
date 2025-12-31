@@ -1,9 +1,10 @@
 import { Layout } from '@/components/layout/Layout';
 import { QuizGrid } from '@/components/home/QuizGrid';
-import { mockQuizzes } from '@/data/mockQuizzes';
+import { useQuizzes } from '@/hooks/useQuizzes';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Quizzes = () => {
-  const publishedQuizzes = mockQuizzes.filter(q => q.status === 'published');
+  const { data: quizzes, isLoading } = useQuizzes(true);
 
   return (
     <Layout>
@@ -20,7 +21,19 @@ const Quizzes = () => {
       </section>
 
       {/* Quiz Grid */}
-      <QuizGrid quizzes={publishedQuizzes} />
+      {isLoading ? (
+        <section className="py-12">
+          <div className="container mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <Skeleton key={i} className="h-64 rounded-xl" />
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : (
+        <QuizGrid quizzes={quizzes || []} />
+      )}
     </Layout>
   );
 };

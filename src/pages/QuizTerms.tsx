@@ -1,13 +1,26 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
-import { mockQuizzes } from '@/data/mockQuizzes';
+import { AdBanner } from '@/components/ads/AdBanner';
+import { useQuiz } from '@/hooks/useQuizzes';
+import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 
 const QuizTerms = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const quiz = mockQuizzes.find(q => q.id === id);
+  const { data: quiz, isLoading } = useQuiz(id);
+  const { data: questions } = useQuizQuestions(id);
+
+  if (isLoading) {
+    return (
+      <Layout showFooter={false}>
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
 
   if (!quiz) {
     return (
@@ -24,6 +37,8 @@ const QuizTerms = () => {
       </Layout>
     );
   }
+
+  const questionCount = questions?.length || 0;
 
   const terms = [
     {
@@ -53,6 +68,11 @@ const QuizTerms = () => {
               <ArrowLeft className="h-4 w-4" />
               Kembali ke Detail Quiz
             </Link>
+
+            {/* Ad Banner Top */}
+            <div className="mb-6">
+              <AdBanner slot="terms-top" />
+            </div>
 
             {/* Card */}
             <div className="bg-card rounded-2xl shadow-xl p-6 md:p-8 animate-scale-in">
@@ -87,9 +107,9 @@ const QuizTerms = () => {
 
               {/* Quiz Info */}
               <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground mb-8">
-                <span>⏱️ {quiz.estimatedTime} menit</span>
+                <span>⏱️ {quiz.estimated_time || 5} menit</span>
                 <span>•</span>
-                <span>❓ {quiz.questionCount} pertanyaan</span>
+                <span>❓ {questionCount} pertanyaan</span>
               </div>
 
               {/* CTA */}
@@ -101,6 +121,11 @@ const QuizTerms = () => {
               >
                 Mulai Sekarang
               </Button>
+            </div>
+
+            {/* Ad Banner Bottom */}
+            <div className="mt-6">
+              <AdBanner slot="terms-bottom" />
             </div>
           </div>
         </div>

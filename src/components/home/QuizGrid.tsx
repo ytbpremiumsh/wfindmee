@@ -1,5 +1,7 @@
-import { Quiz, QuizCategory } from '@/types/quiz';
+import { Database } from '@/integrations/supabase/types';
 import { QuizCard } from '@/components/quiz/QuizCard';
+
+type Quiz = Database['public']['Tables']['quizzes']['Row'];
 
 interface QuizGridProps {
   quizzes: Quiz[];

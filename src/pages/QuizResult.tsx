@@ -1,20 +1,93 @@
 import { useParams, Link, useLocation } from 'react-router-dom';
-import { ArrowLeft, RefreshCw, Share2, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Share2, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { AdBanner } from '@/components/ads/AdBanner';
-import { mockQuizzes, mockResults } from '@/data/mockQuizzes';
+import { useQuiz } from '@/hooks/useQuizzes';
+import { useQuizResults } from '@/hooks/useQuizResults';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from 'react';
 
 const QuizResult = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
-  const quiz = mockQuizzes.find(q => q.id === id);
+  const { data: quiz, isLoading: quizLoading } = useQuiz(id);
+  const { data: results, isLoading: resultsLoading } = useQuizResults(id);
+  const [matchedResult, setMatchedResult] = useState<any>(null);
   
-  // For demo, just pick a random result
-  const result = mockResults.find(r => r.quizId === id) || mockResults[0];
+  const totalScores = location.state?.totalScores as Record<string, number> | undefined;
+  const answers = location.state?.answers;
 
-  if (!quiz || !result) {
+  useEffect(() => {
+    if (results && results.length > 0 && totalScores) {
+      // Find the matching result based on scores
+      // Calculate total score
+      const totalScore = Object.values(totalScores).reduce((sum, val) => sum + val, 0);
+      
+      // Find result that matches the score range
+      const matched = results.find(r => 
+        totalScore >= (r.min_score || 0) && totalScore <= (r.max_score || 999)
+      );
+      
+      if (matched) {
+        setMatchedResult(matched);
+      } else {
+        // Find by highest personality type score
+        let maxType = '';
+        let maxScore = 0;
+        Object.entries(totalScores).forEach(([type, score]) => {
+          if (score > maxScore) {
+            maxScore = score;
+            maxType = type;
+          }
+        });
+        
+        const typeMatch = results.find(r => 
+          r.personality_type?.toLowerCase() === maxType?.toLowerCase()
+        );
+        setMatchedResult(typeMatch || results[0]);
+      }
+
+      // Save attempt to database
+      if (id && answers) {
+        saveAttempt();
+      }
+    } else if (results && results.length > 0) {
+      // No scores, just show first result
+      setMatchedResult(results[0]);
+    }
+  }, [results, totalScores]);
+
+  const saveAttempt = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      await supabase.from('user_quiz_attempts').insert({
+        quiz_id: id,
+        user_id: user?.id || null,
+        answers: answers || {},
+        scores: totalScores || {},
+        result_id: matchedResult?.id || null,
+      });
+    } catch (error) {
+      console.error('Error saving attempt:', error);
+    }
+  };
+
+  const isLoading = quizLoading || resultsLoading;
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto py-16 flex justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!quiz || !matchedResult) {
     return (
       <Layout>
         <div className="container mx-auto py-16 text-center">
@@ -31,7 +104,7 @@ const QuizResult = () => {
   }
 
   const handleShare = (platform: 'whatsapp' | 'twitter' | 'copy') => {
-    const shareText = `Hasil Quiz ${quiz.title}: Saya adalah ${result.title}! Coba juga quiz ini di`;
+    const shareText = `Hasil Quiz ${quiz.title}: Saya adalah ${matchedResult.title}! Coba juga quiz ini di`;
     const shareUrl = window.location.origin + `/quiz/${id}`;
 
     switch (platform) {
@@ -51,17 +124,25 @@ const QuizResult = () => {
     }
   };
 
+  const strengths = matchedResult.strengths || [];
+  const weaknesses = matchedResult.weaknesses || [];
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="max-w-2xl mx-auto">
+          {/* Ad Banner Top */}
+          <div className="mb-6">
+            <AdBanner slot="result-top" />
+          </div>
+
           {/* Result Card */}
           <div className="bg-card rounded-3xl shadow-xl overflow-hidden animate-scale-in">
             {/* Result Image */}
             <div className="relative aspect-video bg-gradient-to-br from-primary/20 to-accent/20">
               <img
-                src={result.image || '/placeholder.svg'}
-                alt={result.title}
+                src={matchedResult.image_url || '/placeholder.svg'}
+                alt={matchedResult.title}
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
@@ -71,53 +152,59 @@ const QuizResult = () => {
             <div className="p-6 md:p-8 -mt-16 relative">
               {/* Type Badge */}
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-lg font-bold mb-4">
-                {result.personalityType}
+                {matchedResult.personality_type}
               </div>
 
               {/* Title */}
               <h1 className="text-2xl md:text-3xl font-bold mb-4">
-                {result.title}
+                {matchedResult.title}
               </h1>
 
               {/* Description */}
               <p className="text-muted-foreground leading-relaxed mb-8">
-                {result.description}
+                {matchedResult.description}
               </p>
 
               {/* Strengths & Weaknesses */}
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
-                {/* Strengths */}
-                <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
-                  <h3 className="font-semibold text-primary mb-3 flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5" />
-                    Kelebihan
-                  </h3>
-                  <ul className="space-y-2">
-                    {result.strengths.map((strength, index) => (
-                      <li key={index} className="text-sm flex items-start gap-2">
-                        <span className="text-primary mt-1">•</span>
-                        {strength}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              {(strengths.length > 0 || weaknesses.length > 0) && (
+                <div className="grid md:grid-cols-2 gap-6 mb-8">
+                  {/* Strengths */}
+                  {strengths.length > 0 && (
+                    <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
+                      <h3 className="font-semibold text-primary mb-3 flex items-center gap-2">
+                        <CheckCircle className="h-5 w-5" />
+                        Kelebihan
+                      </h3>
+                      <ul className="space-y-2">
+                        {strengths.map((strength: string, index: number) => (
+                          <li key={index} className="text-sm flex items-start gap-2">
+                            <span className="text-primary mt-1">•</span>
+                            {strength}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-                {/* Weaknesses */}
-                <div className="p-4 rounded-xl bg-accent/5 border border-accent/20">
-                  <h3 className="font-semibold text-accent mb-3 flex items-center gap-2">
-                    <XCircle className="h-5 w-5" />
-                    Kelemahan
-                  </h3>
-                  <ul className="space-y-2">
-                    {result.weaknesses.map((weakness, index) => (
-                      <li key={index} className="text-sm flex items-start gap-2">
-                        <span className="text-accent mt-1">•</span>
-                        {weakness}
-                      </li>
-                    ))}
-                  </ul>
+                  {/* Weaknesses */}
+                  {weaknesses.length > 0 && (
+                    <div className="p-4 rounded-xl bg-accent/5 border border-accent/20">
+                      <h3 className="font-semibold text-accent mb-3 flex items-center gap-2">
+                        <XCircle className="h-5 w-5" />
+                        Kelemahan
+                      </h3>
+                      <ul className="space-y-2">
+                        {weaknesses.map((weakness: string, index: number) => (
+                          <li key={index} className="text-sm flex items-start gap-2">
+                            <span className="text-accent mt-1">•</span>
+                            {weakness}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
 
               {/* Share Buttons */}
               <div className="space-y-4">
