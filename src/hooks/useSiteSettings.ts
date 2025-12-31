@@ -4,17 +4,22 @@ import { toast } from '@/hooks/use-toast';
 
 interface AdsenseSettings {
   enabled: boolean;
-  client_id: string;
-  header_slot: string;
-  content_slot: string;
-  footer_slot: string;
+  script_code?: string;
+  // Legacy fields for backwards compatibility
+  client_id?: string;
+  header_slot?: string;
+  content_slot?: string;
+  footer_slot?: string;
 }
 
 interface AISettings {
   enabled: boolean;
-  api_key: string;
-  model: string;
-  prompt_template: string;
+  provider?: 'lovable' | 'openrouter';
+  model?: string;
+  openrouter_api_key?: string;
+  prompt_template?: string;
+  // Legacy field
+  api_key?: string;
 }
 
 interface CustomCodeSettings {
@@ -51,12 +56,23 @@ export function useUpdateSetting() {
   
   return useMutation({
     mutationFn: async ({ key, value }: { key: string; value: Record<string, unknown> }) => {
-      const { error } = await supabase
+      // First try to update
+      const { error: updateError, count } = await supabase
         .from('site_settings')
         .update({ setting_value: value as unknown as import('@/integrations/supabase/types').Json })
         .eq('setting_key', key);
       
-      if (error) throw error;
+      // If no rows were updated, insert instead
+      if (updateError || count === 0) {
+        const { error: upsertError } = await supabase
+          .from('site_settings')
+          .upsert({ 
+            setting_key: key, 
+            setting_value: value as unknown as import('@/integrations/supabase/types').Json 
+          }, { onConflict: 'setting_key' });
+        
+        if (upsertError) throw upsertError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['site_settings'] });

@@ -13,6 +13,9 @@ interface GenerateQuizRequest {
   questionCount: number;
   optionCount: number;
   resultCount: number;
+  aiProvider?: 'lovable' | 'openrouter';
+  aiModel?: string;
+  openrouterApiKey?: string;
 }
 
 serve(async (req) => {
@@ -21,110 +24,230 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
-    }
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { quizId, title, category, questionCount, optionCount, resultCount }: GenerateQuizRequest = await req.json();
+    const { 
+      quizId, 
+      title, 
+      category, 
+      questionCount, 
+      optionCount, 
+      resultCount,
+      aiProvider = 'lovable',
+      aiModel,
+      openrouterApiKey
+    }: GenerateQuizRequest = await req.json();
 
-    console.log('Generating quiz content for:', { quizId, title, category, questionCount, optionCount, resultCount });
+    console.log('Generating quiz content for:', { quizId, title, category, questionCount, optionCount, resultCount, aiProvider, aiModel });
 
-    // Create prompt for AI to generate quiz content
-    const prompt = `Kamu adalah pembuat quiz kepribadian profesional. Buatkan konten quiz dengan detail berikut:
+    // Get API configuration based on provider
+    let apiUrl: string;
+    let apiKey: string;
+    let model: string;
 
-Judul Quiz: ${title}
+    if (aiProvider === 'openrouter' && openrouterApiKey) {
+      apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+      apiKey = openrouterApiKey;
+      model = aiModel || 'google/gemini-2.5-flash';
+    } else {
+      const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+      if (!LOVABLE_API_KEY) {
+        throw new Error('LOVABLE_API_KEY is not configured');
+      }
+      apiUrl = 'https://ai.gateway.lovable.dev/v1/chat/completions';
+      apiKey = LOVABLE_API_KEY;
+      model = aiModel || 'google/gemini-2.5-flash';
+    }
+
+    // Generate personality type names first
+    const personalityTypes = Array.from({ length: resultCount }, (_, i) => `type${i + 1}`);
+
+    const systemPrompt = `Kamu adalah pembuat quiz kepribadian profesional. Kamu HARUS menghasilkan output dalam format JSON yang valid. Semua konten dalam Bahasa Indonesia.`;
+
+    const userPrompt = `Buatkan quiz kepribadian dengan detail berikut:
+
+Judul: ${title}
 Kategori: ${category}
 Jumlah Pertanyaan: ${questionCount}
 Jumlah Pilihan per Pertanyaan: ${optionCount}
-Jumlah Tipe Hasil/Kepribadian: ${resultCount}
+Jumlah Tipe Kepribadian: ${resultCount}
 
-PENTING: Semua konten HARUS dalam Bahasa Indonesia.
+Tipe kepribadian yang harus digunakan: ${personalityTypes.join(', ')}
 
-Buat quiz yang menarik dengan:
-1. ${questionCount} pertanyaan yang berkaitan dengan tema "${title}"
-2. Setiap pertanyaan memiliki ${optionCount} pilihan jawaban
-3. ${resultCount} tipe kepribadian/hasil yang berbeda dengan skor minimum dan maksimum
+ATURAN PENTING:
+1. Setiap pertanyaan HARUS memiliki tepat ${optionCount} pilihan
+2. Setiap pilihan HARUS memiliki personality_scores dengan skor untuk SEMUA ${resultCount} tipe (${personalityTypes.join(', ')})
+3. Skor berkisar 1-5 (1=tidak cocok, 5=sangat cocok)
+4. Total skor maksimum per tipe = ${questionCount} x 5 = ${questionCount * 5}
+5. min_score dan max_score untuk hasil tidak boleh overlap
 
-Format output HARUS dalam JSON yang valid dengan struktur berikut:
+Hasilkan JSON dengan struktur PERSIS seperti ini:
 {
   "questions": [
     {
-      "question_text": "Teks pertanyaan dalam Bahasa Indonesia",
+      "question_text": "Pertanyaan dalam Bahasa Indonesia?",
       "question_order": 1,
       "options": [
         {
-          "option_text": "Teks pilihan dalam Bahasa Indonesia",
+          "option_text": "Pilihan A",
           "option_order": 1,
-          "personality_scores": {"tipe1": 5, "tipe2": 2, "tipe3": 1}
+          "personality_scores": {${personalityTypes.map(t => `"${t}": 3`).join(', ')}}
         }
       ]
     }
   ],
   "results": [
     {
-      "personality_type": "Nama Tipe (contoh: INTJ, Pemimpin, dll)",
-      "title": "Judul hasil yang menarik",
-      "description": "Deskripsi lengkap tentang tipe ini dalam 2-3 kalimat",
+      "personality_type": "type1",
+      "title": "Nama Tipe Kepribadian",
+      "description": "Deskripsi lengkap 2-3 kalimat tentang tipe ini",
       "strengths": ["Kelebihan 1", "Kelebihan 2", "Kelebihan 3"],
-      "weaknesses": ["Kelemahan 1", "Kelemahan 2", "Kelemahan 3"],
+      "weaknesses": ["Kekurangan 1", "Kekurangan 2"],
       "min_score": 0,
-      "max_score": 30
+      "max_score": ${Math.floor((questionCount * 5) / resultCount)}
     }
   ]
-}
+}`;
 
-Pastikan:
-- Skor pada personality_scores menggunakan key yang sesuai dengan personality_type
-- Range min_score dan max_score tidak overlap dan mencakup semua kemungkinan skor
-- Semua teks dalam Bahasa Indonesia yang natural dan menarik`;
+    console.log('Calling AI API:', apiUrl, 'model:', model);
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Use tool calling for structured output
+    const aiResponse = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
+        ...(aiProvider === 'openrouter' && {
+          'HTTP-Referer': supabaseUrl,
+          'X-Title': 'Quiz Generator'
+        })
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: model,
         messages: [
-          { role: 'system', content: 'Kamu adalah AI pembuat quiz kepribadian. Selalu output dalam format JSON yang valid. Semua konten dalam Bahasa Indonesia.' },
-          { role: 'user', content: prompt }
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
         ],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'generate_quiz_content',
+              description: 'Generate quiz questions and personality results',
+              parameters: {
+                type: 'object',
+                properties: {
+                  questions: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        question_text: { type: 'string' },
+                        question_order: { type: 'number' },
+                        options: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              option_text: { type: 'string' },
+                              option_order: { type: 'number' },
+                              personality_scores: { type: 'object' }
+                            },
+                            required: ['option_text', 'option_order', 'personality_scores']
+                          }
+                        }
+                      },
+                      required: ['question_text', 'question_order', 'options']
+                    }
+                  },
+                  results: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        personality_type: { type: 'string' },
+                        title: { type: 'string' },
+                        description: { type: 'string' },
+                        strengths: { type: 'array', items: { type: 'string' } },
+                        weaknesses: { type: 'array', items: { type: 'string' } },
+                        min_score: { type: 'number' },
+                        max_score: { type: 'number' }
+                      },
+                      required: ['personality_type', 'title', 'description', 'strengths', 'weaknesses', 'min_score', 'max_score']
+                    }
+                  }
+                },
+                required: ['questions', 'results']
+              }
+            }
+          }
+        ],
+        tool_choice: { type: 'function', function: { name: 'generate_quiz_content' } }
       }),
     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
       console.error('AI API error:', aiResponse.status, errorText);
-      throw new Error(`AI API error: ${aiResponse.status}`);
+      
+      if (aiResponse.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again later.');
+      }
+      if (aiResponse.status === 402) {
+        throw new Error('Payment required. Please add credits.');
+      }
+      throw new Error(`AI API error: ${aiResponse.status} - ${errorText}`);
     }
 
     const aiData = await aiResponse.json();
-    let contentText = aiData.choices?.[0]?.message?.content || '';
-    
-    console.log('AI Response:', contentText.substring(0, 500));
+    console.log('AI Response received');
 
-    // Extract JSON from the response
-    const jsonMatch = contentText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('Could not extract JSON from AI response');
+    let quizContent;
+    
+    // Check if response has tool calls
+    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+    if (toolCall?.function?.arguments) {
+      console.log('Parsing tool call arguments');
+      quizContent = JSON.parse(toolCall.function.arguments);
+    } else {
+      // Fallback to parsing content as JSON
+      const contentText = aiData.choices?.[0]?.message?.content || '';
+      console.log('AI Response content:', contentText.substring(0, 500));
+      
+      const jsonMatch = contentText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        console.error('Full AI response:', JSON.stringify(aiData, null, 2));
+        throw new Error('Could not extract JSON from AI response');
+      }
+      quizContent = JSON.parse(jsonMatch[0]);
     }
 
-    const quizContent = JSON.parse(jsonMatch[0]);
+    console.log('Parsed quiz content:', {
+      questionCount: quizContent.questions?.length,
+      resultCount: quizContent.results?.length
+    });
+
+    if (!quizContent.questions || quizContent.questions.length === 0) {
+      throw new Error('AI did not generate any questions');
+    }
+
+    if (!quizContent.results || quizContent.results.length === 0) {
+      throw new Error('AI did not generate any results');
+    }
 
     // Insert questions into database
-    for (const question of quizContent.questions) {
+    for (let i = 0; i < quizContent.questions.length; i++) {
+      const question = quizContent.questions[i];
+      console.log(`Inserting question ${i + 1}:`, question.question_text?.substring(0, 50));
+      
       const { data: questionData, error: questionError } = await supabase
         .from('quiz_questions')
         .insert({
           quiz_id: quizId,
           question_text: question.question_text,
-          question_order: question.question_order,
+          question_order: question.question_order || i + 1,
         })
         .select()
         .single();
@@ -135,36 +258,50 @@ Pastikan:
       }
 
       // Insert options for this question
-      const optionsToInsert = question.options.map((opt: any, index: number) => ({
+      const optionsToInsert = (question.options || []).map((opt: any, index: number) => ({
         question_id: questionData.id,
         option_text: opt.option_text,
         option_order: opt.option_order || index + 1,
         personality_scores: opt.personality_scores || {},
       }));
 
-      const { error: optionsError } = await supabase
-        .from('quiz_options')
-        .insert(optionsToInsert);
+      if (optionsToInsert.length > 0) {
+        const { error: optionsError } = await supabase
+          .from('quiz_options')
+          .insert(optionsToInsert);
 
-      if (optionsError) {
-        console.error('Error inserting options:', optionsError);
-        throw optionsError;
+        if (optionsError) {
+          console.error('Error inserting options:', optionsError);
+          throw optionsError;
+        }
       }
     }
 
+    // Calculate proper score ranges for results
+    const maxPossibleScore = questionCount * 5;
+    const scoreRangePerResult = Math.ceil(maxPossibleScore / resultCount);
+
     // Insert results into database
-    for (const result of quizContent.results) {
+    for (let i = 0; i < quizContent.results.length; i++) {
+      const result = quizContent.results[i];
+      const minScore = i * scoreRangePerResult;
+      const maxScore = i === quizContent.results.length - 1 
+        ? maxPossibleScore 
+        : (i + 1) * scoreRangePerResult - 1;
+
+      console.log(`Inserting result ${i + 1}:`, result.title, `(${minScore}-${maxScore})`);
+      
       const { error: resultError } = await supabase
         .from('quiz_results')
         .insert({
           quiz_id: quizId,
-          personality_type: result.personality_type,
+          personality_type: result.personality_type || `type${i + 1}`,
           title: result.title,
           description: result.description,
-          strengths: result.strengths,
-          weaknesses: result.weaknesses,
-          min_score: result.min_score,
-          max_score: result.max_score,
+          strengths: result.strengths || [],
+          weaknesses: result.weaknesses || [],
+          min_score: minScore,
+          max_score: maxScore,
         });
 
       if (resultError) {
@@ -177,7 +314,7 @@ Pastikan:
     await supabase
       .from('quizzes')
       .update({ 
-        estimated_time: Math.ceil(questionCount * 0.5) // Estimate 30 seconds per question
+        estimated_time: Math.ceil(questionCount * 0.5)
       })
       .eq('id', quizId);
 
