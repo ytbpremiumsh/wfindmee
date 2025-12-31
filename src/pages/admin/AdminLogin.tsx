@@ -1,38 +1,82 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Brain, Lock, Mail } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Brain, Lock, Mail, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { signIn, signUp, user, isAdmin, isLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+
+  const from = location.state?.from?.pathname || '/admin/dashboard';
+
+  useEffect(() => {
+    if (!isLoading && user && isAdmin) {
+      navigate(from, { replace: true });
+    }
+  }, [user, isAdmin, isLoading, navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
 
-    // Demo login - in production, this would be authenticated
-    if (email === 'admin@quizmind.com' && password === 'admin123') {
+    try {
+      if (isSignUp) {
+        const { error } = await signUp(email, password);
+        if (error) {
+          toast({
+            title: "Registrasi gagal",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Registrasi berhasil!",
+            description: "Akun Anda telah dibuat. Silakan login.",
+          });
+          setIsSignUp(false);
+        }
+      } else {
+        const { error } = await signIn(email, password);
+        if (error) {
+          toast({
+            title: "Login gagal",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Login berhasil!",
+            description: "Selamat datang di Dashboard Admin",
+          });
+        }
+      }
+    } catch (err) {
       toast({
-        title: "Login berhasil!",
-        description: "Selamat datang di Dashboard Admin",
-      });
-      navigate('/admin/dashboard');
-    } else {
-      toast({
-        title: "Login gagal",
-        description: "Email atau password salah",
+        title: "Error",
+        description: "Terjadi kesalahan. Silakan coba lagi.",
         variant: "destructive",
       });
     }
 
-    setIsLoading(false);
+    setIsSubmitting(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
@@ -48,7 +92,9 @@ const AdminLogin = () => {
 
         {/* Login Card */}
         <div className="bg-card rounded-2xl shadow-xl p-6 md:p-8">
-          <h1 className="text-xl font-semibold mb-6 text-center">Masuk ke Dashboard</h1>
+          <h1 className="text-xl font-semibold mb-6 text-center">
+            {isSignUp ? 'Buat Akun Admin' : 'Masuk ke Dashboard'}
+          </h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -79,20 +125,32 @@ const AdminLogin = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
                   required
+                  minLength={6}
                 />
               </div>
             </div>
 
-            <Button type="submit" variant="hero" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Memproses...' : 'Masuk'}
+            <Button type="submit" variant="hero" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Memproses...' : isSignUp ? 'Daftar' : 'Masuk'}
             </Button>
           </form>
 
-          {/* Demo credentials */}
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="text-sm text-primary hover:underline"
+            >
+              {isSignUp ? 'Sudah punya akun? Masuk' : 'Belum punya akun? Daftar'}
+            </button>
+          </div>
+
+          {/* Info */}
           <div className="mt-6 p-4 rounded-xl bg-muted/50 text-sm">
-            <p className="font-medium mb-2">Demo Credentials:</p>
-            <p className="text-muted-foreground">Email: admin@quizmind.com</p>
-            <p className="text-muted-foreground">Password: admin123</p>
+            <p className="font-medium mb-2">Catatan:</p>
+            <p className="text-muted-foreground">
+              Untuk akses admin, hubungi administrator untuk menambahkan role admin ke akun Anda.
+            </p>
           </div>
         </div>
 
