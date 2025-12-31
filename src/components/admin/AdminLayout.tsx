@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   Brain, 
   LayoutDashboard, 
@@ -9,12 +9,11 @@ import {
   Menu,
   X,
   Home,
-  Sparkles,
   FileText
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -30,11 +29,11 @@ const sidebarLinks = [
 
 export function AdminLayout({ children, title }: AdminLayoutProps) {
   const location = useLocation();
-  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const handleLogout = () => {
-    navigate('/admin/login');
+  const handleLogout = async () => {
+    await signOut();
   };
 
   return (
