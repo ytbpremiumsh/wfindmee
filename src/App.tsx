@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/admin/ProtectedRoute";
 import Index from "./pages/Index";
 import Quizzes from "./pages/Quizzes";
 import QuizDetail from "./pages/QuizDetail";
@@ -21,32 +23,50 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Index />} />
-          <Route path="/quizzes" element={<Quizzes />} />
-          <Route path="/quiz/:id" element={<QuizDetail />} />
-          <Route path="/quiz/:id/terms" element={<QuizTerms />} />
-          <Route path="/quiz/:id/play" element={<QuizPlay />} />
-          <Route path="/quiz/:id/result" element={<QuizResult />} />
-          <Route path="/about" element={<About />} />
-          
-          {/* Admin Routes */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/quizzes" element={<AdminQuizzes />} />
-          <Route path="/admin/settings" element={<AdminSettings />} />
-          <Route path="/admin/content" element={<AdminContent />} />
-          
-          {/* 404 */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/quizzes" element={<Quizzes />} />
+            <Route path="/quiz/:id" element={<QuizDetail />} />
+            <Route path="/quiz/:id/terms" element={<QuizTerms />} />
+            <Route path="/quiz/:id/play" element={<QuizPlay />} />
+            <Route path="/quiz/:id/result" element={<QuizResult />} />
+            <Route path="/about" element={<About />} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/dashboard" element={
+              <ProtectedRoute requireAdmin>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/quizzes" element={
+              <ProtectedRoute requireAdmin>
+                <AdminQuizzes />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/settings" element={
+              <ProtectedRoute requireAdmin>
+                <AdminSettings />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/content" element={
+              <ProtectedRoute requireAdmin>
+                <AdminContent />
+              </ProtectedRoute>
+            } />
+            
+            {/* 404 */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
