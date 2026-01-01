@@ -16,6 +16,7 @@ interface GenerateQuizRequest {
   aiProvider?: 'lovable' | 'openrouter';
   aiModel?: string;
   openrouterApiKey?: string;
+  tone?: string;
 }
 
 serve(async (req) => {
@@ -37,10 +38,23 @@ serve(async (req) => {
       resultCount,
       aiProvider = 'lovable',
       aiModel,
-      openrouterApiKey
+      openrouterApiKey,
+      tone = 'netral'
     }: GenerateQuizRequest = await req.json();
 
-    console.log('Generating quiz content for:', { quizId, title, category, questionCount, optionCount, resultCount, aiProvider, aiModel });
+    console.log('Generating quiz content for:', { quizId, title, category, questionCount, optionCount, resultCount, aiProvider, aiModel, tone });
+
+    // Map tone to writing style instructions
+    const toneStyles: Record<string, string> = {
+      'netral': 'Gunakan gaya bahasa yang netral dan informatif.',
+      'humoris': 'Gunakan gaya bahasa yang lucu, jenaka, dan menghibur. Tambahkan humor ringan pada pertanyaan dan hasil. Buat pembaca tersenyum!',
+      'serius': 'Gunakan gaya bahasa yang formal, profesional, dan serius. Fokus pada analisis mendalam dan deskripsi yang detail.',
+      'santai': 'Gunakan gaya bahasa yang santai, friendly, dan akrab seperti ngobrol dengan teman. Gunakan bahasa gaul yang sopan.',
+      'motivasi': 'Gunakan gaya bahasa yang inspiratif dan memotivasi. Tambahkan kata-kata penyemangat dan afirmasi positif.',
+      'dramatis': 'Gunakan gaya bahasa yang dramatis dan menarik perhatian. Buat deskripsi yang menggugah emosi dan penasaran.'
+    };
+    
+    const toneInstruction = toneStyles[tone] || toneStyles['netral'];
 
     // Get API configuration based on provider
     let apiUrl: string;
@@ -72,11 +86,15 @@ serve(async (req) => {
 
     const systemPrompt = `Kamu adalah pembuat quiz kepribadian profesional berbahasa Indonesia. 
 
+GAYA PENULISAN:
+${toneInstruction}
+
 ATURAN MUTLAK YANG HARUS DIIKUTI:
 - Kamu WAJIB menghasilkan TEPAT ${questionCount} pertanyaan (tidak boleh 1, tidak boleh kurang, harus ${questionCount})
 - Setiap pertanyaan WAJIB memiliki TEPAT ${optionCount} pilihan jawaban
 - Kamu WAJIB menghasilkan TEPAT ${resultCount} tipe kepribadian hasil
 - Semua konten HARUS dalam Bahasa Indonesia
+- Terapkan gaya penulisan di atas pada SEMUA pertanyaan, pilihan jawaban, dan deskripsi hasil
 
 JANGAN PERNAH menghasilkan hanya 1 pertanyaan. Selalu hasilkan ${questionCount} pertanyaan yang BERBEDA-BEDA.`;
 

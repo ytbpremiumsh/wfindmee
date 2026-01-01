@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { Loader2, Sparkles, PenLine } from 'lucide-react';
 import {
   Dialog,
@@ -71,6 +72,7 @@ export function QuizEditorDialog({ open, onOpenChange, quizId }: QuizEditorDialo
     provider: 'lovable' as 'lovable' | 'openrouter',
     model: '',
     openrouterApiKey: '',
+    tone: 'netral' as string,
   });
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -152,6 +154,7 @@ export function QuizEditorDialog({ open, onOpenChange, quizId }: QuizEditorDialo
                   aiProvider: aiSettings.provider,
                   aiModel: aiSettings.model || undefined,
                   openrouterApiKey: aiSettings.provider === 'openrouter' ? aiSettings.openrouterApiKey : undefined,
+                  tone: aiSettings.tone,
                 }
               });
 
@@ -221,12 +224,10 @@ export function QuizEditorDialog({ open, onOpenChange, quizId }: QuizEditorDialo
 
             <div className="space-y-2">
               <Label htmlFor="description">Deskripsi Lengkap</Label>
-              <Textarea
-                id="description"
+              <RichTextEditor
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(value) => setFormData({ ...formData, description: value })}
                 placeholder="Deskripsi lengkap quiz"
-                rows={4}
               />
             </div>
 
@@ -397,7 +398,31 @@ export function QuizEditorDialog({ open, onOpenChange, quizId }: QuizEditorDialo
                             ))}
                           </SelectContent>
                         </Select>
-                      </div>
+                    </div>
+
+                    {/* Tone/Style Selector */}
+                    <div className="space-y-2">
+                      <Label>Jenis/Gaya Quiz</Label>
+                      <Select 
+                        value={aiSettings.tone} 
+                        onValueChange={(v) => setAiSettings({ ...aiSettings, tone: v })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="netral">Netral (Default)</SelectItem>
+                          <SelectItem value="humoris">Humoris & Seru</SelectItem>
+                          <SelectItem value="serius">Serius & Profesional</SelectItem>
+                          <SelectItem value="santai">Santai & Friendly</SelectItem>
+                          <SelectItem value="motivasi">Motivasional & Inspiratif</SelectItem>
+                          <SelectItem value="dramatis">Dramatis & Menarik</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        AI akan menyesuaikan gaya penulisan sesuai pilihan ini
+                      </p>
+                    </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

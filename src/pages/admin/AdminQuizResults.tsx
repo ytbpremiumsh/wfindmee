@@ -243,7 +243,9 @@ const AdminQuizResults = () => {
         weaknesses: formData.weaknesses.filter(w => w.trim()),
         min_score: formData.min_score,
         max_score: formData.max_score,
-        image_url: formData.image_mode === 'custom' ? (formData.image_url || null) : null,
+        image_url: formData.image_mode === 'custom' || formData.image_mode === 'image_only' 
+          ? (formData.image_url || null) 
+          : null,
         image_mode: formData.image_mode,
         template_id: formData.template_id,
         gradient_id: formData.gradient_id,
