@@ -38,7 +38,18 @@ const QuizTerms = () => {
     );
   }
 
+  // Check if quiz is iframe type
+  const isIframeQuiz = quiz.is_iframe && quiz.iframe_url;
+
   const questionCount = questions?.length || 0;
+
+  const handleStart = () => {
+    if (isIframeQuiz) {
+      navigate(`/quiz/${id}/iframe`);
+    } else {
+      navigate(`/quiz/${id}/play`);
+    }
+  };
 
   const terms = [
     {
@@ -108,8 +119,18 @@ const QuizTerms = () => {
               {/* Quiz Info */}
               <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground mb-8">
                 <span>⏱️ {quiz.estimated_time || 5} menit</span>
-                <span>•</span>
-                <span>❓ {questionCount} pertanyaan</span>
+                {!isIframeQuiz && (
+                  <>
+                    <span>•</span>
+                    <span>❓ {questionCount} pertanyaan</span>
+                  </>
+                )}
+                {isIframeQuiz && (
+                  <>
+                    <span>•</span>
+                    <span>🔗 Quiz Eksternal</span>
+                  </>
+                )}
               </div>
 
               {/* CTA */}
@@ -117,7 +138,7 @@ const QuizTerms = () => {
                 variant="hero" 
                 size="xl" 
                 className="w-full"
-                onClick={() => navigate(`/quiz/${id}/play`)}
+                onClick={handleStart}
               >
                 Mulai Sekarang
               </Button>

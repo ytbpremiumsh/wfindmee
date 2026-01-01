@@ -50,11 +50,6 @@ export function Navbar() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/admin/login">
-              <Button variant="ghost" size="sm">
-                Admin
-              </Button>
-            </Link>
             <Link to="/quizzes">
               <Button variant="default" size="sm">
                 Mulai Quiz
@@ -96,11 +91,6 @@ export function Navbar() {
                 </Link>
               ))}
               <div className="flex gap-2 mt-2 px-4">
-                <Link to="/admin/login" className="flex-1">
-                  <Button variant="outline" size="sm" className="w-full">
-                    Admin
-                  </Button>
-                </Link>
                 <Link to="/quizzes" className="flex-1">
                   <Button variant="default" size="sm" className="w-full">
                     Mulai Quiz

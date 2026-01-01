@@ -10,6 +10,7 @@ import Quizzes from "./pages/Quizzes";
 import QuizDetail from "./pages/QuizDetail";
 import QuizTerms from "./pages/QuizTerms";
 import QuizPlay from "./pages/QuizPlay";
+import QuizIframe from "./pages/QuizIframe";
 import QuizResult from "./pages/QuizResult";
 import About from "./pages/About";
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/quiz/:id" element={<QuizDetail />} />
             <Route path="/quiz/:id/terms" element={<QuizTerms />} />
             <Route path="/quiz/:id/play" element={<QuizPlay />} />
+            <Route path="/quiz/:id/iframe" element={<QuizIframe />} />
             <Route path="/quiz/:id/result" element={<QuizResult />} />
             <Route path="/about" element={<About />} />
             
