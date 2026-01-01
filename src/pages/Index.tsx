@@ -1,5 +1,7 @@
 import { Layout } from '@/components/layout/Layout';
 import { HeroSection } from '@/components/home/HeroSection';
+import { HeadlineNews } from '@/components/home/HeadlineNews';
+import { LatestCarousel } from '@/components/home/LatestCarousel';
 import { QuizGrid } from '@/components/home/QuizGrid';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { useQuizzes } from '@/hooks/useQuizzes';
@@ -20,10 +22,16 @@ const Index = () => {
       {/* Featured Quiz Carousel */}
       <HeroSection />
 
+      {/* Headline News Section */}
+      <HeadlineNews />
+
       {/* Ad Banner */}
       <div className="container mx-auto px-4 my-4">
         <AdBanner slot="mid-content" />
       </div>
+
+      {/* Latest Carousel */}
+      <LatestCarousel />
 
       {/* All Quizzes */}
       {isLoading ? (

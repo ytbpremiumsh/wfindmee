@@ -25,6 +25,11 @@ const AdminSettings = () => {
     script_code: '',
   });
 
+  const [adsDisplay, setAdsDisplay] = useState({
+    ads_per_page: 3,
+    sticky_ad_enabled: true,
+  });
+
   const [ai, setAi] = useState({
     enabled: false,
     provider: 'lovable' as 'lovable' | 'openrouter',
@@ -46,6 +51,13 @@ const AdminSettings = () => {
           script_code: settings.adsense.script_code || '',
         });
       }
+      const adsDisplaySettings = (settings as any).ads_display;
+      if (adsDisplaySettings) {
+        setAdsDisplay({
+          ads_per_page: adsDisplaySettings.ads_per_page ?? 3,
+          sticky_ad_enabled: adsDisplaySettings.sticky_ad_enabled !== false,
+        });
+      }
       if (settings.ai) {
         setAi({
           enabled: settings.ai.enabled || false,
@@ -61,6 +73,10 @@ const AdminSettings = () => {
 
   const handleSaveAdsense = () => {
     updateSetting.mutate({ key: 'adsense', value: adsense });
+  };
+
+  const handleSaveAdsDisplay = () => {
+    updateSetting.mutate({ key: 'ads_display', value: adsDisplay });
   };
 
   const handleSaveAI = () => {
@@ -132,6 +148,43 @@ const AdminSettings = () => {
             <Button onClick={handleSaveAdsense} disabled={updateSetting.isPending} className="gap-2">
               {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Simpan AdSense
+            </Button>
+          </div>
+        </section>
+
+        {/* Ads Display Settings */}
+        <section className="bg-card rounded-2xl p-6 shadow-sm">
+          <h2 className="text-lg font-semibold mb-4">📊 Pengaturan Tampilan Iklan</h2>
+          <div className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="ads-per-page">Jumlah Iklan per Halaman</Label>
+                <Select 
+                  value={adsDisplay.ads_per_page.toString()} 
+                  onValueChange={(v) => setAdsDisplay({ ...adsDisplay, ads_per_page: parseInt(v) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5, 6].map(n => (
+                      <SelectItem key={n} value={n.toString()}>{n} iklan</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2 pt-6">
+                <Switch
+                  id="sticky-ad"
+                  checked={adsDisplay.sticky_ad_enabled}
+                  onCheckedChange={(checked) => setAdsDisplay({ ...adsDisplay, sticky_ad_enabled: checked })}
+                />
+                <Label htmlFor="sticky-ad">Tampilkan Sticky Ad (Footer)</Label>
+              </div>
+            </div>
+            <Button onClick={handleSaveAdsDisplay} disabled={updateSetting.isPending} className="gap-2">
+              {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Simpan Pengaturan Iklan
             </Button>
           </div>
         </section>
