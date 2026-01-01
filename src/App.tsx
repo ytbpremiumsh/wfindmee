@@ -22,6 +22,7 @@ import AdminQuizResults from "./pages/admin/AdminQuizResults";
 import AdminArticles from "./pages/admin/AdminArticles";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminContent from "./pages/admin/AdminContent";
+import AdminDataExport from "./pages/admin/AdminDataExport";
 import NotFound from "./pages/NotFound";
 import { StickyAd } from "./components/ads/StickyAd";
 
@@ -81,6 +82,11 @@ const App = () => (
             <Route path="/admin/content" element={
               <ProtectedRoute requireAdmin>
                 <AdminContent />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/export" element={
+              <ProtectedRoute requireAdmin>
+                <AdminDataExport />
               </ProtectedRoute>
             } />
             

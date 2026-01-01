@@ -54,10 +54,10 @@ const QuizIframe = () => {
                 href={quiz.iframe_url} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="inline-flex items-center justify-center p-2 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Buka di tab baru"
               >
                 <ExternalLink className="h-4 w-4" />
-                <span className="hidden sm:inline">Buka di Tab Baru</span>
               </a>
             </div>
           </div>

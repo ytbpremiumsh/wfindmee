@@ -25,6 +25,19 @@ const GRADIENT_MAP: Record<string, string> = {
   dark: 'from-gray-700 to-gray-900',
 };
 
+// Image Only Template - Full image display without text
+export const ImageOnlyTemplate = ({ result }: TemplateProps) => (
+  <div className="bg-card rounded-3xl shadow-xl overflow-hidden">
+    <div className="relative aspect-square sm:aspect-[4/3]">
+      <img
+        src={result.image_url || '/placeholder.svg'}
+        alt={result.title}
+        className="w-full h-full object-cover"
+      />
+    </div>
+  </div>
+);
+
 // Default Card Template
 export const DefaultTemplate = ({ result }: TemplateProps) => (
   <div className="bg-card rounded-3xl shadow-xl overflow-hidden">
@@ -207,6 +220,11 @@ export const StrengthsWeaknessesSection = ({ result }: TemplateProps) => {
 
 // Main template renderer
 export const renderResultTemplate = (result: ResultData) => {
+  // Image only mode - just display image full
+  if (result.image_mode === 'image_only' && result.image_url) {
+    return <ImageOnlyTemplate result={result} />;
+  }
+  
   // If custom image mode and has image, use default template
   if (result.image_mode === 'custom' && result.image_url) {
     return <DefaultTemplate result={result} />;

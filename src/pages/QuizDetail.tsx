@@ -105,16 +105,22 @@ const QuizDetail = () => {
               </p>
             </div>
 
-            {/* CTA */}
-            <Button 
-              variant="hero" 
-              size="lg" 
-              className="w-full md:w-auto"
-              onClick={() => navigate(`/quiz/${id}/terms`)}
-            >
-              <Play className="h-5 w-5" />
-              Mulai Quiz
-            </Button>
+            {/* CTA with Ads */}
+            <div className="space-y-4">
+              <AdBanner slot="quiz-before-start" />
+              
+              <Button 
+                variant="hero" 
+                size="lg" 
+                className="w-full md:w-auto"
+                onClick={() => navigate(`/quiz/${id}/terms`)}
+              >
+                <Play className="h-5 w-5" />
+                Mulai Quiz
+              </Button>
+              
+              <AdBanner slot="quiz-after-start" />
+            </div>
           </div>
 
           {/* Ad Banner */}
