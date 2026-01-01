@@ -57,6 +57,8 @@ const AdminLogin = () => {
             title: "Login berhasil!",
             description: "Selamat datang di Dashboard Admin",
           });
+          // Redirect langsung ke admin dashboard
+          navigate('/admin/dashboard', { replace: true });
         }
       }
     } catch (err) {
