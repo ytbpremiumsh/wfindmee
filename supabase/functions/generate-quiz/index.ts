@@ -70,52 +70,34 @@ serve(async (req) => {
     // Generate personality type names first
     const personalityTypes = Array.from({ length: resultCount }, (_, i) => `type${i + 1}`);
 
-    const systemPrompt = `Kamu adalah pembuat quiz kepribadian profesional. Kamu HARUS menghasilkan output dalam format JSON yang valid. Semua konten dalam Bahasa Indonesia.`;
+    const systemPrompt = `Kamu adalah pembuat quiz kepribadian profesional. Kamu HARUS menghasilkan TEPAT ${questionCount} pertanyaan dengan ${optionCount} pilihan masing-masing, dan ${resultCount} hasil kepribadian. TIDAK BOLEH KURANG ATAU LEBIH dari jumlah yang diminta. Semua konten dalam Bahasa Indonesia.`;
 
     const userPrompt = `Buatkan quiz kepribadian dengan detail berikut:
 
 Judul: ${title}
 Kategori: ${category}
-Jumlah Pertanyaan: ${questionCount}
+Jumlah Pertanyaan: HARUS TEPAT ${questionCount} pertanyaan (WAJIB, tidak boleh kurang!)
 Jumlah Pilihan per Pertanyaan: ${optionCount}
 Jumlah Tipe Kepribadian: ${resultCount}
 
 Tipe kepribadian yang harus digunakan: ${personalityTypes.join(', ')}
 
-ATURAN PENTING:
-1. Setiap pertanyaan HARUS memiliki tepat ${optionCount} pilihan
-2. Setiap pilihan HARUS memiliki personality_scores dengan skor untuk SEMUA ${resultCount} tipe (${personalityTypes.join(', ')})
-3. Skor berkisar 1-5 (1=tidak cocok, 5=sangat cocok)
-4. Total skor maksimum per tipe = ${questionCount} x 5 = ${questionCount * 5}
-5. min_score dan max_score untuk hasil tidak boleh overlap
+ATURAN SANGAT PENTING:
+1. WAJIB menghasilkan TEPAT ${questionCount} pertanyaan berbeda - TIDAK BOLEH KURANG!
+2. Setiap pertanyaan HARUS memiliki tepat ${optionCount} pilihan yang berbeda
+3. Setiap pilihan HARUS memiliki personality_scores dengan skor untuk SEMUA ${resultCount} tipe (${personalityTypes.join(', ')})
+4. Skor berkisar 1-5 (1=tidak cocok, 5=sangat cocok)
+5. Pertanyaan harus beragam dan relevan dengan topik "${title}"
+6. min_score dan max_score untuk hasil tidak boleh overlap
 
-Hasilkan JSON dengan struktur PERSIS seperti ini:
-{
-  "questions": [
-    {
-      "question_text": "Pertanyaan dalam Bahasa Indonesia?",
-      "question_order": 1,
-      "options": [
-        {
-          "option_text": "Pilihan A",
-          "option_order": 1,
-          "personality_scores": {${personalityTypes.map(t => `"${t}": 3`).join(', ')}}
-        }
-      ]
-    }
-  ],
-  "results": [
-    {
-      "personality_type": "type1",
-      "title": "Nama Tipe Kepribadian",
-      "description": "Deskripsi lengkap 2-3 kalimat tentang tipe ini",
-      "strengths": ["Kelebihan 1", "Kelebihan 2", "Kelebihan 3"],
-      "weaknesses": ["Kekurangan 1", "Kekurangan 2"],
-      "min_score": 0,
-      "max_score": ${Math.floor((questionCount * 5) / resultCount)}
-    }
-  ]
-}`;
+CONTOH PERTANYAAN UNTUK INSPIRASI (buat ${questionCount} pertanyaan BERBEDA seperti ini):
+- Pertanyaan tentang kebiasaan sehari-hari
+- Pertanyaan tentang cara mengatasi masalah
+- Pertanyaan tentang interaksi sosial
+- Pertanyaan tentang hobi dan minat
+- Pertanyaan tentang cara membuat keputusan
+
+Hasilkan JSON dengan TEPAT ${questionCount} questions dan ${resultCount} results!`;
 
     console.log('Calling AI API:', apiUrl, 'model:', model);
 
@@ -141,25 +123,34 @@ Hasilkan JSON dengan struktur PERSIS seperti ini:
             type: 'function',
             function: {
               name: 'generate_quiz_content',
-              description: 'Generate quiz questions and personality results',
+              description: `Generate a personality quiz with EXACTLY ${questionCount} different questions, each with ${optionCount} options, and ${resultCount} personality result types. DO NOT generate less than ${questionCount} questions.`,
               parameters: {
                 type: 'object',
                 properties: {
                   questions: {
                     type: 'array',
+                    description: `MUST contain EXACTLY ${questionCount} different questions. Each question must be unique and relevant to the quiz topic.`,
+                    minItems: questionCount,
+                    maxItems: questionCount,
                     items: {
                       type: 'object',
                       properties: {
-                        question_text: { type: 'string' },
-                        question_order: { type: 'number' },
+                        question_text: { type: 'string', description: 'The question text in Indonesian' },
+                        question_order: { type: 'number', description: 'Order of the question starting from 1' },
                         options: {
                           type: 'array',
+                          description: `MUST contain EXACTLY ${optionCount} options`,
+                          minItems: optionCount,
+                          maxItems: optionCount,
                           items: {
                             type: 'object',
                             properties: {
-                              option_text: { type: 'string' },
-                              option_order: { type: 'number' },
-                              personality_scores: { type: 'object' }
+                              option_text: { type: 'string', description: 'The option text in Indonesian' },
+                              option_order: { type: 'number', description: 'Order of the option starting from 1' },
+                              personality_scores: { 
+                                type: 'object',
+                                description: `Scores for each personality type (${personalityTypes.join(', ')}). Each score should be 1-5.`
+                              }
                             },
                             required: ['option_text', 'option_order', 'personality_scores']
                           }
@@ -170,16 +161,19 @@ Hasilkan JSON dengan struktur PERSIS seperti ini:
                   },
                   results: {
                     type: 'array',
+                    description: `MUST contain EXACTLY ${resultCount} personality result types`,
+                    minItems: resultCount,
+                    maxItems: resultCount,
                     items: {
                       type: 'object',
                       properties: {
-                        personality_type: { type: 'string' },
-                        title: { type: 'string' },
-                        description: { type: 'string' },
-                        strengths: { type: 'array', items: { type: 'string' } },
-                        weaknesses: { type: 'array', items: { type: 'string' } },
-                        min_score: { type: 'number' },
-                        max_score: { type: 'number' }
+                        personality_type: { type: 'string', description: 'The personality type identifier (e.g., type1, type2)' },
+                        title: { type: 'string', description: 'The title of this personality type in Indonesian' },
+                        description: { type: 'string', description: 'A detailed description of this personality type in Indonesian (2-3 sentences)' },
+                        strengths: { type: 'array', items: { type: 'string' }, description: 'List of strengths in Indonesian' },
+                        weaknesses: { type: 'array', items: { type: 'string' }, description: 'List of weaknesses in Indonesian' },
+                        min_score: { type: 'number', description: 'Minimum score to get this result' },
+                        max_score: { type: 'number', description: 'Maximum score to get this result' }
                       },
                       required: ['personality_type', 'title', 'description', 'strengths', 'weaknesses', 'min_score', 'max_score']
                     }
@@ -242,6 +236,13 @@ Hasilkan JSON dengan struktur PERSIS seperti ini:
     if (!quizContent.results || quizContent.results.length === 0) {
       throw new Error('AI did not generate any results');
     }
+
+    // Log warning if question count doesn't match
+    if (quizContent.questions.length !== questionCount) {
+      console.warn(`Warning: Requested ${questionCount} questions but AI generated ${quizContent.questions.length}. Proceeding with generated questions.`);
+    }
+
+    console.log(`Successfully parsed: ${quizContent.questions.length} questions, ${quizContent.results.length} results`);
 
     // Insert questions into database
     for (let i = 0; i < quizContent.questions.length; i++) {
