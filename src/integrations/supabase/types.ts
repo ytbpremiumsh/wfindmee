@@ -202,13 +202,16 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          gradient_id: string | null
           id: string
+          image_mode: string | null
           image_url: string | null
           max_score: number | null
           min_score: number | null
           personality_type: string
           quiz_id: string
           strengths: string[] | null
+          template_id: string | null
           title: string
           updated_at: string
           weaknesses: string[] | null
@@ -216,13 +219,16 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          gradient_id?: string | null
           id?: string
+          image_mode?: string | null
           image_url?: string | null
           max_score?: number | null
           min_score?: number | null
           personality_type: string
           quiz_id: string
           strengths?: string[] | null
+          template_id?: string | null
           title: string
           updated_at?: string
           weaknesses?: string[] | null
@@ -230,13 +236,16 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          gradient_id?: string | null
           id?: string
+          image_mode?: string | null
           image_url?: string | null
           max_score?: number | null
           min_score?: number | null
           personality_type?: string
           quiz_id?: string
           strengths?: string[] | null
+          template_id?: string | null
           title?: string
           updated_at?: string
           weaknesses?: string[] | null

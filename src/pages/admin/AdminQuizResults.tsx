@@ -12,7 +12,9 @@ import {
   Trash2, 
   Save, 
   Loader2,
-  X
+  X,
+  Image,
+  Palette
 } from 'lucide-react';
 import { useQuiz } from '@/hooks/useQuizzes';
 import { useQuizResults } from '@/hooks/useQuizResults';
@@ -40,9 +42,44 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+
+// Template definitions for result display
+export const RESULT_TEMPLATES = [
+  { id: 'default', name: 'Default Card', preview: 'Card dengan gambar atas' },
+  { id: 'gradient', name: 'Gradient Hero', preview: 'Gradient warna dengan ikon' },
+  { id: 'minimal', name: 'Minimal Clean', preview: 'Minimalis tanpa gambar' },
+  { id: 'badge', name: 'Badge Style', preview: 'Badge besar dengan border' },
+  { id: 'split', name: 'Split Layout', preview: 'Dua kolom dengan gambar' },
+  { id: 'magazine', name: 'Magazine', preview: 'Style majalah modern' },
+];
+
+// Gradient presets for template
+export const GRADIENT_PRESETS = [
+  { id: 'purple', name: 'Purple Dream', colors: 'from-purple-500 to-pink-500' },
+  { id: 'ocean', name: 'Ocean Blue', colors: 'from-blue-500 to-cyan-500' },
+  { id: 'sunset', name: 'Sunset', colors: 'from-orange-500 to-red-500' },
+  { id: 'forest', name: 'Forest', colors: 'from-green-500 to-emerald-500' },
+  { id: 'gold', name: 'Golden', colors: 'from-yellow-500 to-amber-500' },
+  { id: 'dark', name: 'Dark Mode', colors: 'from-gray-700 to-gray-900' },
+];
+
+type ImageMode = 'custom' | 'template';
 
 interface ResultForm {
   personality_type: string;
@@ -53,6 +90,9 @@ interface ResultForm {
   min_score: number;
   max_score: number;
   image_url: string;
+  image_mode: ImageMode;
+  template_id: string;
+  gradient_id: string;
 }
 
 const AdminQuizResults = () => {
@@ -78,6 +118,9 @@ const AdminQuizResults = () => {
     min_score: 0,
     max_score: 100,
     image_url: '',
+    image_mode: 'custom',
+    template_id: 'default',
+    gradient_id: 'purple',
   });
 
   const isLoading = isQuizLoading || isResultsLoading;
@@ -93,6 +136,9 @@ const AdminQuizResults = () => {
       min_score: 0,
       max_score: 100,
       image_url: '',
+      image_mode: 'custom',
+      template_id: 'default',
+      gradient_id: 'purple',
     });
     setIsEditorOpen(true);
   };
@@ -108,6 +154,9 @@ const AdminQuizResults = () => {
       min_score: result.min_score || 0,
       max_score: result.max_score || 100,
       image_url: result.image_url || '',
+      image_mode: result.image_mode || 'custom',
+      template_id: result.template_id || 'default',
+      gradient_id: result.gradient_id || 'purple',
     });
     setIsEditorOpen(true);
   };
@@ -194,7 +243,10 @@ const AdminQuizResults = () => {
         weaknesses: formData.weaknesses.filter(w => w.trim()),
         min_score: formData.min_score,
         max_score: formData.max_score,
-        image_url: formData.image_url || null,
+        image_url: formData.image_mode === 'custom' ? (formData.image_url || null) : null,
+        image_mode: formData.image_mode,
+        template_id: formData.template_id,
+        gradient_id: formData.gradient_id,
       };
 
       if (editingResult) {
@@ -398,14 +450,113 @@ const AdminQuizResults = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="image_url">URL Gambar (opsional)</Label>
-              <Input
-                id="image_url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                placeholder="https://..."
-              />
+            {/* Image Settings */}
+            <div className="space-y-4">
+              <Label>Pengaturan Gambar</Label>
+              <Tabs 
+                value={formData.image_mode} 
+                onValueChange={(v) => setFormData({ ...formData, image_mode: v as ImageMode })}
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="custom" className="gap-2">
+                    <Image className="h-4 w-4" />
+                    Gambar Custom
+                  </TabsTrigger>
+                  <TabsTrigger value="template" className="gap-2">
+                    <Palette className="h-4 w-4" />
+                    Template Sistem
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="custom" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="image_url">URL Gambar</Label>
+                    <Input
+                      id="image_url"
+                      value={formData.image_url}
+                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                      placeholder="https://example.com/image.jpg"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Masukkan URL gambar untuk ditampilkan pada hasil quiz
+                    </p>
+                  </div>
+                  {formData.image_url && (
+                    <div className="rounded-lg overflow-hidden border">
+                      <img 
+                        src={formData.image_url} 
+                        alt="Preview" 
+                        className="w-full h-40 object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/placeholder.svg';
+                        }}
+                      />
+                    </div>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="template" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label>Pilih Template</Label>
+                    <Select 
+                      value={formData.template_id} 
+                      onValueChange={(v) => setFormData({ ...formData, template_id: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih template" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {RESULT_TEMPLATES.map((tpl) => (
+                          <SelectItem key={tpl.id} value={tpl.id}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{tpl.name}</span>
+                              <span className="text-xs text-muted-foreground">{tpl.preview}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Warna Gradient</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {GRADIENT_PRESETS.map((gradient) => (
+                        <button
+                          key={gradient.id}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, gradient_id: gradient.id })}
+                          className={`p-3 rounded-lg bg-gradient-to-r ${gradient.colors} text-white text-sm font-medium transition-all ${
+                            formData.gradient_id === gradient.id 
+                              ? 'ring-2 ring-primary ring-offset-2' 
+                              : 'opacity-70 hover:opacity-100'
+                          }`}
+                        >
+                          {gradient.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Template Preview */}
+                  <div className="space-y-2">
+                    <Label>Preview Template</Label>
+                    <div className={`rounded-xl overflow-hidden p-6 bg-gradient-to-br ${
+                      GRADIENT_PRESETS.find(g => g.id === formData.gradient_id)?.colors || 'from-purple-500 to-pink-500'
+                    }`}>
+                      <div className="text-white text-center">
+                        <div className="text-4xl mb-2">🧠</div>
+                        <h3 className="text-xl font-bold">
+                          {formData.title || 'Judul Hasil'}
+                        </h3>
+                        <p className="text-sm opacity-80 mt-1">
+                          {formData.personality_type || 'Tipe'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
 
             {/* Strengths */}
