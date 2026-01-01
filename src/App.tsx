@@ -36,17 +36,17 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/quizzes" element={<Quizzes />} />
-            <Route path="/quiz/:id" element={<QuizDetail />} />
-            <Route path="/quiz/:id/terms" element={<QuizTerms />} />
-            <Route path="/quiz/:id/play" element={<QuizPlay />} />
-            <Route path="/quiz/:id/iframe" element={<QuizIframe />} />
-            <Route path="/quiz/:id/result" element={<QuizResult />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/artikel/:slug" element={<ArticleDetail />} />
+            <Route path="/" element={<><Index /><StickyAd /></>} />
+            <Route path="/quizzes" element={<><Quizzes /><StickyAd /></>} />
+            <Route path="/quiz/:id" element={<><QuizDetail /><StickyAd /></>} />
+            <Route path="/quiz/:id/terms" element={<><QuizTerms /><StickyAd /></>} />
+            <Route path="/quiz/:id/play" element={<><QuizPlay /><StickyAd /></>} />
+            <Route path="/quiz/:id/iframe" element={<><QuizIframe /><StickyAd /></>} />
+            <Route path="/quiz/:id/result" element={<><QuizResult /><StickyAd /></>} />
+            <Route path="/about" element={<><About /><StickyAd /></>} />
+            <Route path="/artikel/:slug" element={<><ArticleDetail /><StickyAd /></>} />
             
-            {/* Admin Routes */}
+            {/* Admin Routes - No Sticky Ad */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={
               <ProtectedRoute requireAdmin>
@@ -87,7 +87,6 @@ const App = () => (
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <StickyAd />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

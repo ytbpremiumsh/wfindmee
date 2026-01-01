@@ -20,6 +20,11 @@ const AdminSettings = () => {
   const { data: settings, isLoading } = useSiteSettings();
   const updateSetting = useUpdateSetting();
 
+  const [branding, setBranding] = useState({
+    site_name: 'QuizMind',
+    logo_url: '',
+  });
+
   const [adsense, setAdsense] = useState({
     enabled: false,
     script_code: '',
@@ -45,6 +50,13 @@ const AdminSettings = () => {
 
   useEffect(() => {
     if (settings) {
+      const brandingSettings = (settings as any).branding;
+      if (brandingSettings) {
+        setBranding({
+          site_name: brandingSettings.site_name || 'QuizMind',
+          logo_url: brandingSettings.logo_url || '',
+        });
+      }
       if (settings.adsense) {
         setAdsense({
           enabled: settings.adsense.enabled || false,
@@ -70,6 +82,10 @@ const AdminSettings = () => {
       if (settings.custom_code) setCustomCode(settings.custom_code);
     }
   }, [settings]);
+
+  const handleSaveBranding = () => {
+    updateSetting.mutate({ key: 'branding', value: branding });
+  };
 
   const handleSaveAdsense = () => {
     updateSetting.mutate({ key: 'adsense', value: adsense });
@@ -108,6 +124,54 @@ const AdminSettings = () => {
   return (
     <AdminLayout title="Pengaturan">
       <div className="max-w-3xl space-y-8">
+        {/* Branding Settings */}
+        <section className="bg-card rounded-2xl p-6 shadow-sm">
+          <h2 className="text-lg font-semibold mb-4">🎨 Branding</h2>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="site-name">Nama Brand / Situs</Label>
+              <Input
+                id="site-name"
+                value={branding.site_name}
+                onChange={(e) => setBranding({ ...branding, site_name: e.target.value })}
+                placeholder="QuizMind"
+              />
+              <p className="text-xs text-muted-foreground">
+                Nama ini akan ditampilkan di navbar dan seluruh situs.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="logo-url">URL Logo</Label>
+              <Input
+                id="logo-url"
+                value={branding.logo_url}
+                onChange={(e) => setBranding({ ...branding, logo_url: e.target.value })}
+                placeholder="https://example.com/logo.png"
+              />
+              <p className="text-xs text-muted-foreground">
+                Masukkan URL gambar logo. Jika kosong, akan menggunakan ikon default.
+              </p>
+              {branding.logo_url && (
+                <div className="mt-2 p-4 bg-muted/50 rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-2">Preview:</p>
+                  <img 
+                    src={branding.logo_url} 
+                    alt="Logo Preview" 
+                    className="h-10 object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+            <Button onClick={handleSaveBranding} disabled={updateSetting.isPending} className="gap-2">
+              {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Simpan Branding
+            </Button>
+          </div>
+        </section>
+
         {/* Google Adsense */}
         <section className="bg-card rounded-2xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">

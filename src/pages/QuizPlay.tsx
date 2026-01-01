@@ -134,6 +134,17 @@ const QuizPlay = () => {
             <div className="max-w-2xl mx-auto">
               {/* Question */}
               <div className="animate-fade-in" key={currentQuestion.id}>
+                {/* Optional Question Image */}
+                {currentQuestion.image_url && (
+                  <div className="flex justify-center mb-6">
+                    <img 
+                      src={currentQuestion.image_url} 
+                      alt="Question" 
+                      className="max-h-48 rounded-xl object-cover shadow-md"
+                    />
+                  </div>
+                )}
+                
                 <h2 className="text-xl md:text-2xl font-semibold text-center mb-8">
                   {currentQuestion.question_text}
                 </h2>
