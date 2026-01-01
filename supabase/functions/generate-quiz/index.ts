@@ -70,34 +70,55 @@ serve(async (req) => {
     // Generate personality type names first
     const personalityTypes = Array.from({ length: resultCount }, (_, i) => `type${i + 1}`);
 
-    const systemPrompt = `Kamu adalah pembuat quiz kepribadian profesional. Kamu HARUS menghasilkan TEPAT ${questionCount} pertanyaan dengan ${optionCount} pilihan masing-masing, dan ${resultCount} hasil kepribadian. TIDAK BOLEH KURANG ATAU LEBIH dari jumlah yang diminta. Semua konten dalam Bahasa Indonesia.`;
+    const systemPrompt = `Kamu adalah pembuat quiz kepribadian profesional berbahasa Indonesia. 
 
-    const userPrompt = `Buatkan quiz kepribadian dengan detail berikut:
+ATURAN MUTLAK YANG HARUS DIIKUTI:
+- Kamu WAJIB menghasilkan TEPAT ${questionCount} pertanyaan (tidak boleh 1, tidak boleh kurang, harus ${questionCount})
+- Setiap pertanyaan WAJIB memiliki TEPAT ${optionCount} pilihan jawaban
+- Kamu WAJIB menghasilkan TEPAT ${resultCount} tipe kepribadian hasil
+- Semua konten HARUS dalam Bahasa Indonesia
 
-Judul: ${title}
-Kategori: ${category}
-Jumlah Pertanyaan: HARUS TEPAT ${questionCount} pertanyaan (WAJIB, tidak boleh kurang!)
-Jumlah Pilihan per Pertanyaan: ${optionCount}
-Jumlah Tipe Kepribadian: ${resultCount}
+JANGAN PERNAH menghasilkan hanya 1 pertanyaan. Selalu hasilkan ${questionCount} pertanyaan yang BERBEDA-BEDA.`;
 
-Tipe kepribadian yang harus digunakan: ${personalityTypes.join(', ')}
+    // Generate question topics to help AI diversify
+    const questionTopics = [];
+    for (let i = 1; i <= questionCount; i++) {
+      questionTopics.push(`Pertanyaan ${i}: tentang aspek berbeda dari "${title}"`);
+    }
 
-ATURAN SANGAT PENTING:
-1. WAJIB menghasilkan TEPAT ${questionCount} pertanyaan berbeda - TIDAK BOLEH KURANG!
-2. Setiap pertanyaan HARUS memiliki tepat ${optionCount} pilihan yang berbeda
-3. Setiap pilihan HARUS memiliki personality_scores dengan skor untuk SEMUA ${resultCount} tipe (${personalityTypes.join(', ')})
-4. Skor berkisar 1-5 (1=tidak cocok, 5=sangat cocok)
-5. Pertanyaan harus beragam dan relevan dengan topik "${title}"
-6. min_score dan max_score untuk hasil tidak boleh overlap
+    const userPrompt = `Buatkan quiz kepribadian dengan spesifikasi berikut:
 
-CONTOH PERTANYAAN UNTUK INSPIRASI (buat ${questionCount} pertanyaan BERBEDA seperti ini):
-- Pertanyaan tentang kebiasaan sehari-hari
-- Pertanyaan tentang cara mengatasi masalah
-- Pertanyaan tentang interaksi sosial
-- Pertanyaan tentang hobi dan minat
-- Pertanyaan tentang cara membuat keputusan
+JUDUL QUIZ: "${title}"
+KATEGORI: ${category}
 
-Hasilkan JSON dengan TEPAT ${questionCount} questions dan ${resultCount} results!`;
+SPESIFIKASI WAJIB:
+✓ Jumlah Pertanyaan: ${questionCount} pertanyaan (HARUS TEPAT ${questionCount}, BUKAN 1!)
+✓ Pilihan per Pertanyaan: ${optionCount} pilihan
+✓ Tipe Hasil: ${resultCount} tipe kepribadian
+
+TIPE KEPRIBADIAN YANG HARUS DIGUNAKAN:
+${personalityTypes.map((t, i) => `${i + 1}. ${t}`).join('\n')}
+
+PANDUAN MEMBUAT ${questionCount} PERTANYAAN:
+${questionTopics.join('\n')}
+
+CONTOH TOPIK PERTANYAAN (gunakan sebagai inspirasi untuk ${questionCount} pertanyaan BERBEDA):
+1. Bagaimana cara menghadapi situasi tertentu
+2. Preferensi dalam aktivitas sehari-hari  
+3. Cara berinteraksi dengan orang lain
+4. Kebiasaan saat menghadapi masalah
+5. Preferensi dalam mengambil keputusan
+6. Cara mengekspresikan diri
+7. Prioritas dalam hidup
+8. Reaksi terhadap perubahan
+9. Cara mengelola waktu
+10. Pendekatan terhadap tugas baru
+
+ATURAN PERSONALITY_SCORES:
+- Setiap pilihan harus punya skor untuk SEMUA ${resultCount} tipe: ${personalityTypes.join(', ')}
+- Skor range: 1-5 (1=tidak cocok, 5=sangat cocok)
+
+INGAT: Kamu HARUS menghasilkan TEPAT ${questionCount} pertanyaan dalam array questions. Tidak boleh kurang!`;
 
     console.log('Calling AI API:', apiUrl, 'model:', model);
 
