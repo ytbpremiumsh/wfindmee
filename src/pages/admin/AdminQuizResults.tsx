@@ -79,7 +79,7 @@ export const GRADIENT_PRESETS = [
   { id: 'dark', name: 'Dark Mode', colors: 'from-gray-700 to-gray-900' },
 ];
 
-type ImageMode = 'custom' | 'template';
+type ImageMode = 'custom' | 'template' | 'image_only';
 
 interface ResultForm {
   personality_type: string;
@@ -457,14 +457,18 @@ const AdminQuizResults = () => {
                 value={formData.image_mode} 
                 onValueChange={(v) => setFormData({ ...formData, image_mode: v as ImageMode })}
               >
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="custom" className="gap-2">
-                    <Image className="h-4 w-4" />
-                    Gambar Custom
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="custom" className="gap-1 text-xs sm:text-sm">
+                    <Image className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Gambar +</span> Teks
                   </TabsTrigger>
-                  <TabsTrigger value="template" className="gap-2">
-                    <Palette className="h-4 w-4" />
-                    Template Sistem
+                  <TabsTrigger value="image_only" className="gap-1 text-xs sm:text-sm">
+                    <Image className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Gambar</span> Saja
+                  </TabsTrigger>
+                  <TabsTrigger value="template" className="gap-1 text-xs sm:text-sm">
+                    <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
+                    Template
                   </TabsTrigger>
                 </TabsList>
                 
@@ -478,7 +482,7 @@ const AdminQuizResults = () => {
                       placeholder="https://example.com/image.jpg"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Masukkan URL gambar untuk ditampilkan pada hasil quiz
+                      Gambar akan ditampilkan dengan judul & deskripsi di bawahnya
                     </p>
                   </div>
                   {formData.image_url && (
@@ -487,6 +491,33 @@ const AdminQuizResults = () => {
                         src={formData.image_url} 
                         alt="Preview" 
                         className="w-full h-40 object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/placeholder.svg';
+                        }}
+                      />
+                    </div>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="image_only" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="image_url_only">URL Gambar</Label>
+                    <Input
+                      id="image_url_only"
+                      value={formData.image_url}
+                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                      placeholder="https://example.com/image.jpg"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Hanya gambar yang ditampilkan (full tanpa teks overlay)
+                    </p>
+                  </div>
+                  {formData.image_url && (
+                    <div className="rounded-lg overflow-hidden border">
+                      <img 
+                        src={formData.image_url} 
+                        alt="Preview" 
+                        className="w-full h-48 object-cover"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = '/placeholder.svg';
                         }}

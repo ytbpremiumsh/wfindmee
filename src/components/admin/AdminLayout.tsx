@@ -9,7 +9,8 @@ import {
   Menu,
   X,
   Home,
-  FileText
+  FileText,
+  Database
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -25,6 +26,7 @@ const sidebarLinks = [
   { href: '/admin/quizzes', label: 'Kelola Quiz', icon: FileQuestion },
   { href: '/admin/articles', label: 'Kelola Artikel', icon: FileText },
   { href: '/admin/content', label: 'Konten Home', icon: Home },
+  { href: '/admin/export', label: 'Export/Import', icon: Database },
   { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
 ];
 
