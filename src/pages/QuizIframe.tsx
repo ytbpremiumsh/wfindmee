@@ -68,13 +68,13 @@ const QuizIframe = () => {
           <AdBanner slot="iframe-top" />
         </div>
 
-        {/* Iframe Container */}
-        <div className="flex-1 container mx-auto px-4 pb-4">
-          <div className="bg-card rounded-xl overflow-hidden shadow-lg h-full min-h-[500px]">
+        {/* Iframe Container - Full Width */}
+        <div className="flex-1 w-full px-2 sm:px-4 pb-4">
+          <div className="bg-card rounded-xl overflow-hidden shadow-lg h-full min-h-[70vh]">
             <iframe
               src={quiz.iframe_url}
               title={quiz.title}
-              className="w-full h-full min-h-[500px]"
+              className="w-full h-full min-h-[70vh]"
               style={{ border: 'none' }}
               allowFullScreen
             />

@@ -58,7 +58,13 @@ serve(async (req) => {
       }
       apiUrl = 'https://ai.gateway.lovable.dev/v1/chat/completions';
       apiKey = LOVABLE_API_KEY;
-      model = aiModel || 'google/gemini-2.5-flash';
+      // Ensure model has correct prefix for Lovable AI gateway
+      let selectedModel = aiModel || 'google/gemini-2.5-flash';
+      // If model doesn't have provider prefix, add google/ prefix
+      if (selectedModel && !selectedModel.includes('/')) {
+        selectedModel = `google/${selectedModel}`;
+      }
+      model = selectedModel;
     }
 
     // Generate personality type names first

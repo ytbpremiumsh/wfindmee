@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      articles: {
+        Row: {
+          banner_url: string | null
+          category: string | null
+          content: string | null
+          created_at: string
+          created_by: string | null
+          excerpt: string | null
+          id: string
+          is_featured: boolean | null
+          slug: string
+          status: string | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          views_count: number | null
+        }
+        Insert: {
+          banner_url?: string | null
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          excerpt?: string | null
+          id?: string
+          is_featured?: boolean | null
+          slug: string
+          status?: string | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          views_count?: number | null
+        }
+        Update: {
+          banner_url?: string | null
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          excerpt?: string | null
+          id?: string
+          is_featured?: boolean | null
+          slug?: string
+          status?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          views_count?: number | null
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
           created_at: string

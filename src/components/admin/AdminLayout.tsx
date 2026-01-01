@@ -23,7 +23,8 @@ interface AdminLayoutProps {
 const sidebarLinks = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/quizzes', label: 'Kelola Quiz', icon: FileQuestion },
-  { href: '/admin/content', label: 'Konten Home', icon: FileText },
+  { href: '/admin/articles', label: 'Kelola Artikel', icon: FileText },
+  { href: '/admin/content', label: 'Konten Home', icon: Home },
   { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
 ];
 

@@ -13,14 +13,17 @@ import QuizPlay from "./pages/QuizPlay";
 import QuizIframe from "./pages/QuizIframe";
 import QuizResult from "./pages/QuizResult";
 import About from "./pages/About";
+import ArticleDetail from "./pages/ArticleDetail";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminQuizzes from "./pages/admin/AdminQuizzes";
 import AdminQuizQuestions from "./pages/admin/AdminQuizQuestions";
 import AdminQuizResults from "./pages/admin/AdminQuizResults";
+import AdminArticles from "./pages/admin/AdminArticles";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminContent from "./pages/admin/AdminContent";
 import NotFound from "./pages/NotFound";
+import { StickyAd } from "./components/ads/StickyAd";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +44,7 @@ const App = () => (
             <Route path="/quiz/:id/iframe" element={<QuizIframe />} />
             <Route path="/quiz/:id/result" element={<QuizResult />} />
             <Route path="/about" element={<About />} />
+            <Route path="/artikel/:slug" element={<ArticleDetail />} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
@@ -64,6 +68,11 @@ const App = () => (
                 <AdminQuizResults />
               </ProtectedRoute>
             } />
+            <Route path="/admin/articles" element={
+              <ProtectedRoute requireAdmin>
+                <AdminArticles />
+              </ProtectedRoute>
+            } />
             <Route path="/admin/settings" element={
               <ProtectedRoute requireAdmin>
                 <AdminSettings />
@@ -78,6 +87,7 @@ const App = () => (
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <StickyAd />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
