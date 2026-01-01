@@ -167,6 +167,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          image_url: string | null
           question_order: number | null
           question_text: string
           quiz_id: string
@@ -175,6 +176,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          image_url?: string | null
           question_order?: number | null
           question_text: string
           quiz_id: string
@@ -183,6 +185,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          image_url?: string | null
           question_order?: number | null
           question_text?: string
           quiz_id?: string

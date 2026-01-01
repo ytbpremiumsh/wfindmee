@@ -12,7 +12,8 @@ import {
   Trash2, 
   Save, 
   Loader2,
-  X
+  X,
+  ImagePlus
 } from 'lucide-react';
 import { useQuiz } from '@/hooks/useQuizzes';
 import { useQuizQuestions, useCreateQuestion, useUpdateQuestion, useDeleteQuestion } from '@/hooks/useQuizQuestions';
@@ -51,6 +52,7 @@ interface QuestionOption {
 interface QuestionForm {
   question_text: string;
   question_order: number;
+  image_url: string;
   options: QuestionOption[];
 }
 
@@ -71,6 +73,7 @@ const AdminQuizQuestions = () => {
   const [formData, setFormData] = useState<QuestionForm>({
     question_text: '',
     question_order: 1,
+    image_url: '',
     options: [
       { option_text: '', option_order: 1, personality_scores: {} },
       { option_text: '', option_order: 2, personality_scores: {} },
@@ -86,6 +89,7 @@ const AdminQuizQuestions = () => {
     setFormData({
       question_text: '',
       question_order: (questions?.length ?? 0) + 1,
+      image_url: '',
       options: [
         { option_text: '', option_order: 1, personality_scores: {} },
         { option_text: '', option_order: 2, personality_scores: {} },
@@ -101,6 +105,7 @@ const AdminQuizQuestions = () => {
     setFormData({
       question_text: question.question_text,
       question_order: question.question_order || 1,
+      image_url: question.image_url || '',
       options: question.quiz_options?.map((opt: any) => ({
         option_text: opt.option_text,
         option_order: opt.option_order || 1,
@@ -194,6 +199,7 @@ const AdminQuizQuestions = () => {
         question: {
           question_text: formData.question_text,
           question_order: formData.question_order,
+          image_url: formData.image_url || null,
         },
         options: validOptions.map(opt => ({
           option_text: opt.option_text,
@@ -211,6 +217,7 @@ const AdminQuizQuestions = () => {
           quiz_id: quizId,
           question_text: formData.question_text,
           question_order: formData.question_order,
+          image_url: formData.image_url || null,
         },
         options: validOptions.map(opt => ({
           option_text: opt.option_text,
@@ -301,9 +308,18 @@ const AdminQuizQuestions = () => {
                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm shrink-0">
                       {index + 1}
                     </div>
-                    <CardTitle className="text-base font-medium leading-relaxed">
-                      {question.question_text}
-                    </CardTitle>
+                    <div className="space-y-2">
+                      {question.image_url && (
+                        <img 
+                          src={question.image_url} 
+                          alt="Question" 
+                          className="max-h-24 rounded-lg object-cover"
+                        />
+                      )}
+                      <CardTitle className="text-base font-medium leading-relaxed">
+                        {question.question_text}
+                      </CardTitle>
+                    </div>
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button 
@@ -355,6 +371,36 @@ const AdminQuizQuestions = () => {
           </DialogHeader>
 
           <div className="space-y-6 py-4">
+            {/* Optional Image */}
+            <div className="space-y-2">
+              <Label htmlFor="question_image" className="flex items-center gap-2">
+                <ImagePlus className="h-4 w-4" />
+                Gambar Pertanyaan (Opsional)
+              </Label>
+              <Input
+                id="question_image"
+                value={formData.image_url}
+                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                placeholder="https://example.com/gambar.jpg"
+              />
+              <p className="text-xs text-muted-foreground">
+                Masukkan URL gambar yang akan ditampilkan di atas pertanyaan.
+              </p>
+              {formData.image_url && (
+                <div className="mt-2 p-3 bg-muted/50 rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-2">Preview:</p>
+                  <img 
+                    src={formData.image_url} 
+                    alt="Preview" 
+                    className="max-h-32 rounded-lg object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="question_text">Teks Pertanyaan *</Label>
               <Textarea

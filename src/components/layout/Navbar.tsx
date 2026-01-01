@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Brain, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const navLinks = [
   { href: '/', label: 'Beranda' },
@@ -13,6 +14,11 @@ const navLinks = [
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { data: settings } = useSiteSettings();
+  
+  const branding = (settings as any)?.branding;
+  const siteName = branding?.site_name || 'QuizMind';
+  const logoUrl = branding?.logo_url;
 
   return (
     <header className="sticky top-0 z-50 glass-effect border-b border-border/50">
@@ -23,11 +29,15 @@ export function Navbar() {
             to="/" 
             className="flex items-center gap-2 text-xl font-bold group"
           >
-            <div className="relative">
-              <Brain className="h-8 w-8 text-primary transition-transform group-hover:scale-110" />
-              <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-accent animate-pulse-slow" />
-            </div>
-            <span className="text-gradient-primary">QuizMind</span>
+            {logoUrl ? (
+              <img src={logoUrl} alt={siteName} className="h-8 object-contain" />
+            ) : (
+              <div className="relative">
+                <Brain className="h-8 w-8 text-primary transition-transform group-hover:scale-110" />
+                <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-accent animate-pulse-slow" />
+              </div>
+            )}
+            <span className="text-gradient-primary">{siteName}</span>
           </Link>
 
           {/* Desktop Navigation */}
