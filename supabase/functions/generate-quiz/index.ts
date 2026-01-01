@@ -144,34 +144,26 @@ INGAT: Kamu HARUS menghasilkan TEPAT ${questionCount} pertanyaan dalam array que
             type: 'function',
             function: {
               name: 'generate_quiz_content',
-              description: `Generate a personality quiz with EXACTLY ${questionCount} different questions, each with ${optionCount} options, and ${resultCount} personality result types. DO NOT generate less than ${questionCount} questions.`,
+              description: `Generate a personality quiz with ${questionCount} questions, ${optionCount} options each, and ${resultCount} result types.`,
               parameters: {
                 type: 'object',
                 properties: {
                   questions: {
                     type: 'array',
-                    description: `MUST contain EXACTLY ${questionCount} different questions. Each question must be unique and relevant to the quiz topic.`,
-                    minItems: questionCount,
-                    maxItems: questionCount,
+                    description: `Array of ${questionCount} questions`,
                     items: {
                       type: 'object',
                       properties: {
-                        question_text: { type: 'string', description: 'The question text in Indonesian' },
-                        question_order: { type: 'number', description: 'Order of the question starting from 1' },
+                        question_text: { type: 'string' },
+                        question_order: { type: 'number' },
                         options: {
                           type: 'array',
-                          description: `MUST contain EXACTLY ${optionCount} options`,
-                          minItems: optionCount,
-                          maxItems: optionCount,
                           items: {
                             type: 'object',
                             properties: {
-                              option_text: { type: 'string', description: 'The option text in Indonesian' },
-                              option_order: { type: 'number', description: 'Order of the option starting from 1' },
-                              personality_scores: { 
-                                type: 'object',
-                                description: `Scores for each personality type (${personalityTypes.join(', ')}). Each score should be 1-5.`
-                              }
+                              option_text: { type: 'string' },
+                              option_order: { type: 'number' },
+                              personality_scores: { type: 'object' }
                             },
                             required: ['option_text', 'option_order', 'personality_scores']
                           }
@@ -182,21 +174,17 @@ INGAT: Kamu HARUS menghasilkan TEPAT ${questionCount} pertanyaan dalam array que
                   },
                   results: {
                     type: 'array',
-                    description: `MUST contain EXACTLY ${resultCount} personality result types`,
-                    minItems: resultCount,
-                    maxItems: resultCount,
+                    description: `Array of ${resultCount} personality results`,
                     items: {
                       type: 'object',
                       properties: {
-                        personality_type: { type: 'string', description: 'The personality type identifier (e.g., type1, type2)' },
-                        title: { type: 'string', description: 'The title of this personality type in Indonesian' },
-                        description: { type: 'string', description: 'A detailed description of this personality type in Indonesian (2-3 sentences)' },
-                        strengths: { type: 'array', items: { type: 'string' }, description: 'List of strengths in Indonesian' },
-                        weaknesses: { type: 'array', items: { type: 'string' }, description: 'List of weaknesses in Indonesian' },
-                        min_score: { type: 'number', description: 'Minimum score to get this result' },
-                        max_score: { type: 'number', description: 'Maximum score to get this result' }
+                        personality_type: { type: 'string' },
+                        title: { type: 'string' },
+                        description: { type: 'string' },
+                        strengths: { type: 'array', items: { type: 'string' } },
+                        weaknesses: { type: 'array', items: { type: 'string' } }
                       },
-                      required: ['personality_type', 'title', 'description', 'strengths', 'weaknesses', 'min_score', 'max_score']
+                      required: ['personality_type', 'title', 'description', 'strengths', 'weaknesses']
                     }
                   }
                 },
