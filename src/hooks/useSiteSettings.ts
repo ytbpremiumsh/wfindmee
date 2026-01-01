@@ -56,22 +56,34 @@ export function useUpdateSetting() {
   
   return useMutation({
     mutationFn: async ({ key, value }: { key: string; value: Record<string, unknown> }) => {
-      // First try to update
-      const { error: updateError, count } = await supabase
+      // Check if setting exists
+      const { data: existing } = await supabase
         .from('site_settings')
-        .update({ setting_value: value as unknown as import('@/integrations/supabase/types').Json })
-        .eq('setting_key', key);
+        .select('id')
+        .eq('setting_key', key)
+        .maybeSingle();
       
-      // If no rows were updated, insert instead
-      if (updateError || count === 0) {
-        const { error: upsertError } = await supabase
+      if (existing) {
+        // Update existing setting
+        const { error: updateError } = await supabase
           .from('site_settings')
-          .upsert({ 
+          .update({ 
+            setting_value: value as unknown as import('@/integrations/supabase/types').Json,
+            updated_at: new Date().toISOString()
+          })
+          .eq('setting_key', key);
+        
+        if (updateError) throw updateError;
+      } else {
+        // Insert new setting
+        const { error: insertError } = await supabase
+          .from('site_settings')
+          .insert({ 
             setting_key: key, 
             setting_value: value as unknown as import('@/integrations/supabase/types').Json 
-          }, { onConflict: 'setting_key' });
+          });
         
-        if (upsertError) throw upsertError;
+        if (insertError) throw insertError;
       }
     },
     onSuccess: () => {
