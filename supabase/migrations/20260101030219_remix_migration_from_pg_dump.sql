@@ -199,7 +199,8 @@ CREATE TABLE public.quiz_questions (
     question_text text NOT NULL,
     question_order integer DEFAULT 0,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    image_url text
 );
 
 
@@ -219,7 +220,10 @@ CREATE TABLE public.quiz_results (
     min_score integer DEFAULT 0,
     max_score integer,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    image_mode text DEFAULT 'custom'::text,
+    template_id text DEFAULT 'default'::text,
+    gradient_id text DEFAULT 'purple'::text
 );
 
 
