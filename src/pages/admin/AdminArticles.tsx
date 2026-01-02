@@ -3,13 +3,13 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Pencil, Trash2, Eye, Loader2, FileText } from 'lucide-react';
 import { useArticles, useCreateArticle, useUpdateArticle, useDeleteArticle } from '@/hooks/useArticles';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import {
   Dialog,
   DialogContent,
@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 const categories = ['umum', 'tips', 'psikologi', 'karir', 'lifestyle', 'hubungan'];
 
@@ -234,11 +235,11 @@ const AdminArticles = () => {
 
             <div className="space-y-2">
               <Label>Konten</Label>
-              <Textarea
+              <RichTextEditor
                 value={formData.content}
-                onChange={e => setFormData({ ...formData, content: e.target.value })}
-                placeholder="Isi artikel lengkap (mendukung Markdown)"
-                rows={10}
+                onChange={(value) => setFormData({ ...formData, content: value })}
+                placeholder="Isi artikel lengkap..."
+                className="min-h-[300px]"
               />
             </div>
 

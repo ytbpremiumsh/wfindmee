@@ -17,7 +17,7 @@ export function Navbar() {
   const { data: settings } = useSiteSettings();
   
   const branding = (settings as any)?.branding;
-  const siteName = branding?.site_name || 'QuizMind';
+  const siteName = branding?.site_name || 'Wfind';
   const logoUrl = branding?.logo_url;
 
   return (

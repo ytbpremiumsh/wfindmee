@@ -10,7 +10,7 @@ export function Footer() {
           <div className="md:col-span-2">
             <Link to="/" className="flex items-center gap-2 text-xl font-bold mb-4">
               <Brain className="h-7 w-7 text-primary" />
-              <span className="text-gradient-primary">QuizMind</span>
+              <span className="text-gradient-primary">Wfind</span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-md">
               Temukan kepribadian unikmu melalui quiz interaktif yang menyenangkan. 
@@ -65,7 +65,7 @@ export function Footer() {
         {/* Bottom */}
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} QuizMind. All rights reserved.
+            © {new Date().getFullYear()} Wfind. All rights reserved.
           </p>
           <p className="text-sm text-muted-foreground flex items-center gap-1">
             Made with <Heart className="h-4 w-4 text-accent" /> in Indonesia
