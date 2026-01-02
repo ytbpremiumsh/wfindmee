@@ -32,10 +32,10 @@ const About = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
-              Tentang <span className="text-gradient-primary">QuizMind</span>
+              Tentang <span className="text-gradient-primary">Wfind</span>
             </h1>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              QuizMind adalah platform quiz kepribadian interaktif yang membantu kamu memahami 
+              Wfind adalah platform quiz kepribadian interaktif yang membantu kamu memahami 
               diri sendiri dengan cara yang menyenangkan. Kami percaya bahwa mengenal diri sendiri 
               adalah langkah pertama untuk menjadi versi terbaik dari diri kita.
             </p>
@@ -47,7 +47,7 @@ const About = () => {
       <section className="py-16 bg-muted/30">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-12">
-            Mengapa QuizMind?
+            Mengapa Wfind?
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (

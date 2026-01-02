@@ -68,7 +68,7 @@ export function QuizCard({ quiz }: QuizCardProps) {
         </h3>
         
         <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-          {quiz.short_description || quiz.description || 'Quiz menarik untuk kamu!'}
+          {(quiz.short_description || quiz.description || 'Quiz menarik untuk kamu!').replace(/<[^>]*>/g, '')}
         </p>
 
         <div className="flex items-center justify-between">
@@ -79,7 +79,7 @@ export function QuizCard({ quiz }: QuizCardProps) {
 
           <Link to={`/quiz/${quiz.id}`}>
             <Button variant="ghost" size="sm" className="group/btn -mr-2">
-              Detail
+              Mulai Quiz
               <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1" />
             </Button>
           </Link>
