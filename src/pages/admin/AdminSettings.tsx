@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Save, Loader2 } from 'lucide-react';
+import { Save, Loader2, UserPlus, Eye, EyeOff } from 'lucide-react';
 import { useSiteSettings, useUpdateSetting } from '@/hooks/useSiteSettings';
 import { Skeleton } from '@/components/ui/skeleton';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import {
   Select,
   SelectContent,
@@ -47,6 +49,15 @@ const AdminSettings = () => {
     head_code: '',
     footer_code: '',
   });
+
+  // Admin user creation state
+  const [newAdmin, setNewAdmin] = useState({
+    email: '',
+    password: '',
+    full_name: '',
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [isCreatingAdmin, setIsCreatingAdmin] = useState(false);
 
   useEffect(() => {
     if (settings) {
@@ -101,6 +112,69 @@ const AdminSettings = () => {
 
   const handleSaveCustomCode = () => {
     updateSetting.mutate({ key: 'custom_code', value: customCode });
+  };
+
+  const handleCreateAdmin = async () => {
+    if (!newAdmin.email || !newAdmin.password) {
+      toast({
+        title: 'Gagal',
+        description: 'Email dan password wajib diisi',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (newAdmin.password.length < 6) {
+      toast({
+        title: 'Gagal',
+        description: 'Password minimal 6 karakter',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsCreatingAdmin(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-admin-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            email: newAdmin.email,
+            password: newAdmin.password,
+            full_name: newAdmin.full_name,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Gagal membuat admin');
+      }
+
+      toast({
+        title: 'Berhasil!',
+        description: `Admin ${newAdmin.email} berhasil dibuat dan sudah terverifikasi.`,
+      });
+
+      setNewAdmin({ email: '', password: '', full_name: '' });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Gagal membuat admin';
+      toast({
+        title: 'Gagal membuat admin',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCreatingAdmin(false);
+    }
   };
 
   if (isLoading) {
@@ -375,6 +449,69 @@ const AdminSettings = () => {
             <Button onClick={handleSaveCustomCode} disabled={updateSetting.isPending} className="gap-2">
               {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Simpan Custom Code
+            </Button>
+          </div>
+        </section>
+
+        {/* Admin User Management */}
+        <section className="bg-card rounded-2xl p-6 shadow-sm">
+          <h2 className="text-lg font-semibold mb-4">👤 Tambah Admin Baru</h2>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Tambah user admin baru yang langsung terverifikasi dan bisa mengakses dashboard.
+            </p>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="admin-email">Email *</Label>
+                <Input
+                  id="admin-email"
+                  type="email"
+                  value={newAdmin.email}
+                  onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })}
+                  placeholder="admin@example.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="admin-name">Nama Lengkap</Label>
+                <Input
+                  id="admin-name"
+                  value={newAdmin.full_name}
+                  onChange={(e) => setNewAdmin({ ...newAdmin, full_name: e.target.value })}
+                  placeholder="John Doe"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="admin-password">Password *</Label>
+              <div className="relative">
+                <Input
+                  id="admin-password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={newAdmin.password}
+                  onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })}
+                  placeholder="Minimal 6 karakter"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <Button 
+              onClick={handleCreateAdmin} 
+              disabled={isCreatingAdmin} 
+              className="gap-2"
+            >
+              {isCreatingAdmin ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <UserPlus className="h-4 w-4" />
+              )}
+              Buat Admin Baru
             </Button>
           </div>
         </section>

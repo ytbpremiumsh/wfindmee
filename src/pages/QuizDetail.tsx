@@ -99,11 +99,12 @@ const QuizDetail = () => {
             </div>
 
             {/* Description */}
-            <div className="prose prose-sm max-w-none mb-8">
-              <p className="text-muted-foreground leading-relaxed">
-                {quiz.description || quiz.short_description || 'Quiz menarik untuk kamu!'}
-              </p>
-            </div>
+            <div 
+              className="prose prose-sm max-w-none mb-8 text-muted-foreground leading-relaxed [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-medium [&_h3]:mb-2 [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-primary [&_a]:underline"
+              dangerouslySetInnerHTML={{ 
+                __html: quiz.description || quiz.short_description || 'Quiz menarik untuk kamu!' 
+              }}
+            />
 
             {/* CTA with Ads */}
             <div className="space-y-4">
