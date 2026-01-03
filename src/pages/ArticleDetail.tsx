@@ -3,7 +3,8 @@ import { ArrowLeft, Calendar, Eye, Loader2 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AdBanner } from '@/components/ads/AdBanner';
+import { HeaderAd } from '@/components/ads/HeaderAd';
+import { FooterAd } from '@/components/ads/FooterAd';
 import { useArticleBySlug } from '@/hooks/useArticles';
 
 const ArticleDetail = () => {
@@ -47,6 +48,9 @@ const ArticleDetail = () => {
           Kembali
         </Link>
 
+        {/* Header Ad */}
+        <HeaderAd />
+
         {article.banner_url && (
           <img 
             src={article.banner_url} 
@@ -79,15 +83,13 @@ const ArticleDetail = () => {
           )}
         </div>
 
-        <AdBanner slot="article-top" />
+        <div 
+          className="prose prose-lg max-w-none my-8"
+          dangerouslySetInnerHTML={{ __html: article.content || '' }}
+        />
 
-        <div className="prose prose-lg max-w-none my-8">
-          {article.content?.split('\n').map((paragraph, idx) => (
-            <p key={idx}>{paragraph}</p>
-          ))}
-        </div>
-
-        <AdBanner slot="article-bottom" />
+        {/* Footer Ad */}
+        <FooterAd />
       </article>
     </Layout>
   );

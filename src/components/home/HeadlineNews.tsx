@@ -71,7 +71,7 @@ export function HeadlineNews() {
                   {mainQuiz.title}
                 </h3>
                 <p className="text-white/80 line-clamp-2 mb-3">
-                  {mainQuiz.short_description || mainQuiz.description}
+                  {(mainQuiz.short_description || mainQuiz.description || '').replace(/<[^>]*>/g, '')}
                 </p>
                 <div className="flex items-center gap-4 text-sm text-white/60">
                   <span className="flex items-center gap-1">

@@ -203,6 +203,8 @@ export type Database = {
       }
       quiz_results: {
         Row: {
+          best_match_icon: string | null
+          best_match_type: string | null
           created_at: string
           description: string | null
           gradient_id: string | null
@@ -218,8 +220,12 @@ export type Database = {
           title: string
           updated_at: string
           weaknesses: string[] | null
+          worst_match_icon: string | null
+          worst_match_type: string | null
         }
         Insert: {
+          best_match_icon?: string | null
+          best_match_type?: string | null
           created_at?: string
           description?: string | null
           gradient_id?: string | null
@@ -235,8 +241,12 @@ export type Database = {
           title: string
           updated_at?: string
           weaknesses?: string[] | null
+          worst_match_icon?: string | null
+          worst_match_type?: string | null
         }
         Update: {
+          best_match_icon?: string | null
+          best_match_type?: string | null
           created_at?: string
           description?: string | null
           gradient_id?: string | null
@@ -252,6 +262,8 @@ export type Database = {
           title?: string
           updated_at?: string
           weaknesses?: string[] | null
+          worst_match_icon?: string | null
+          worst_match_type?: string | null
         }
         Relationships: [
           {

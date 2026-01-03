@@ -14,7 +14,9 @@ import {
   Loader2,
   X,
   Image,
-  Palette
+  Palette,
+  Heart,
+  HeartCrack
 } from 'lucide-react';
 import { useQuiz } from '@/hooks/useQuizzes';
 import { useQuizResults } from '@/hooks/useQuizResults';
@@ -93,6 +95,10 @@ interface ResultForm {
   image_mode: ImageMode;
   template_id: string;
   gradient_id: string;
+  best_match_type: string;
+  best_match_icon: string;
+  worst_match_type: string;
+  worst_match_icon: string;
 }
 
 const AdminQuizResults = () => {
@@ -121,9 +127,19 @@ const AdminQuizResults = () => {
     image_mode: 'custom',
     template_id: 'default',
     gradient_id: 'purple',
+    best_match_type: '',
+    best_match_icon: '',
+    worst_match_type: '',
+    worst_match_icon: '',
   });
 
   const isLoading = isQuizLoading || isResultsLoading;
+
+  // Get list of result types for dropdown
+  const resultTypes = results?.map(r => ({
+    personality_type: r.personality_type,
+    title: r.title
+  })) || [];
 
   const handleAddResult = () => {
     setEditingResult(null);
@@ -139,6 +155,10 @@ const AdminQuizResults = () => {
       image_mode: 'custom',
       template_id: 'default',
       gradient_id: 'purple',
+      best_match_type: '',
+      best_match_icon: '',
+      worst_match_type: '',
+      worst_match_icon: '',
     });
     setIsEditorOpen(true);
   };
@@ -157,6 +177,10 @@ const AdminQuizResults = () => {
       image_mode: result.image_mode || 'custom',
       template_id: result.template_id || 'default',
       gradient_id: result.gradient_id || 'purple',
+      best_match_type: result.best_match_type || '',
+      best_match_icon: result.best_match_icon || '',
+      worst_match_type: result.worst_match_type || '',
+      worst_match_icon: result.worst_match_icon || '',
     });
     setIsEditorOpen(true);
   };
@@ -249,6 +273,10 @@ const AdminQuizResults = () => {
         image_mode: formData.image_mode,
         template_id: formData.template_id,
         gradient_id: formData.gradient_id,
+        best_match_type: formData.best_match_type || null,
+        best_match_icon: formData.best_match_icon || null,
+        worst_match_type: formData.worst_match_type || null,
+        worst_match_icon: formData.worst_match_icon || null,
       };
 
       if (editingResult) {
@@ -310,7 +338,7 @@ const AdminQuizResults = () => {
       ) : quiz ? (
         <div className="bg-card rounded-2xl p-6 shadow-sm mb-6">
           <h2 className="text-xl font-semibold mb-2">{quiz.title}</h2>
-          <p className="text-muted-foreground">{quiz.description || 'Tidak ada deskripsi'}</p>
+          <p className="text-muted-foreground">{quiz.description?.replace(/<[^>]*>/g, '') || 'Tidak ada deskripsi'}</p>
           <div className="flex gap-4 mt-4 text-sm">
             <span className="text-muted-foreground">
               Total Tipe Hasil: <strong>{results?.length ?? 0}</strong>
@@ -378,10 +406,18 @@ const AdminQuizResults = () => {
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                   {result.description || 'Tidak ada deskripsi'}
                 </p>
-                <div className="flex gap-4 text-xs text-muted-foreground">
-                  <span>Skor: {result.min_score} - {result.max_score}</span>
-                  <span>Kelebihan: {result.strengths?.length || 0}</span>
-                  <span>Kekurangan: {result.weaknesses?.length || 0}</span>
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <span className="bg-muted px-2 py-1 rounded">Skor: {result.min_score} - {result.max_score}</span>
+                  {result.best_match_type && (
+                    <span className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded flex items-center gap-1">
+                      <Heart className="h-3 w-3" /> {result.best_match_type}
+                    </span>
+                  )}
+                  {result.worst_match_type && (
+                    <span className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded flex items-center gap-1">
+                      <HeartCrack className="h-3 w-3" /> {result.worst_match_type}
+                    </span>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -440,6 +476,9 @@ const AdminQuizResults = () => {
                   value={formData.min_score}
                   onChange={(e) => setFormData({ ...formData, min_score: parseInt(e.target.value) || 0 })}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Skor minimum untuk mendapat hasil ini
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="max_score">Skor Maksimum</Label>
@@ -449,11 +488,89 @@ const AdminQuizResults = () => {
                   value={formData.max_score}
                   onChange={(e) => setFormData({ ...formData, max_score: parseInt(e.target.value) || 0 })}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Skor maksimum untuk mendapat hasil ini
+                </p>
               </div>
             </div>
 
+            {/* Compatibility Section */}
+            <div className="border-t pt-4 mt-4">
+              <h3 className="text-md font-medium mb-3 flex items-center gap-2">
+                <Heart className="h-4 w-4 text-pink-500" />
+                Kompatibilitas (Opsional)
+              </h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Paling Klik Sama</Label>
+                  <Select 
+                    value={formData.best_match_type} 
+                    onValueChange={(v) => setFormData({ ...formData, best_match_type: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih tipe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Tidak ada</SelectItem>
+                      {resultTypes
+                        .filter(r => r.personality_type !== formData.personality_type)
+                        .map((r) => (
+                          <SelectItem key={r.personality_type} value={r.personality_type}>
+                            {r.title} ({r.personality_type})
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Icon Klik (URL)</Label>
+                  <Input
+                    value={formData.best_match_icon}
+                    onChange={(e) => setFormData({ ...formData, best_match_icon: e.target.value })}
+                    placeholder="https://... atau emoji 💕"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mt-3">
+                <div className="space-y-2">
+                  <Label>Paling Cekcok Sama</Label>
+                  <Select 
+                    value={formData.worst_match_type} 
+                    onValueChange={(v) => setFormData({ ...formData, worst_match_type: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih tipe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Tidak ada</SelectItem>
+                      {resultTypes
+                        .filter(r => r.personality_type !== formData.personality_type)
+                        .map((r) => (
+                          <SelectItem key={r.personality_type} value={r.personality_type}>
+                            {r.title} ({r.personality_type})
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Icon Cekcok (URL)</Label>
+                  <Input
+                    value={formData.worst_match_icon}
+                    onChange={(e) => setFormData({ ...formData, worst_match_icon: e.target.value })}
+                    placeholder="https://... atau emoji 💔"
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Pilih tipe hasil lain yang paling cocok atau paling tidak cocok dengan tipe ini. Icon bisa berupa URL gambar atau emoji.
+              </p>
+            </div>
+
             {/* Image Settings */}
-            <div className="space-y-4">
+            <div className="space-y-4 border-t pt-4">
               <Label>Pengaturan Gambar</Label>
               <Tabs 
                 value={formData.image_mode} 
