@@ -24,7 +24,6 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminContent from "./pages/admin/AdminContent";
 import AdminDataExport from "./pages/admin/AdminDataExport";
 import NotFound from "./pages/NotFound";
-import { StickyAd } from "./components/ads/StickyAd";
 
 const queryClient = new QueryClient();
 
@@ -37,17 +36,17 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<><Index /><StickyAd /></>} />
-            <Route path="/quizzes" element={<><Quizzes /><StickyAd /></>} />
-            <Route path="/quiz/:id" element={<><QuizDetail /><StickyAd /></>} />
-            <Route path="/quiz/:id/terms" element={<><QuizTerms /><StickyAd /></>} />
-            <Route path="/quiz/:id/play" element={<><QuizPlay /><StickyAd /></>} />
-            <Route path="/quiz/:id/iframe" element={<><QuizIframe /><StickyAd /></>} />
-            <Route path="/quiz/:id/result" element={<><QuizResult /><StickyAd /></>} />
-            <Route path="/about" element={<><About /><StickyAd /></>} />
-            <Route path="/artikel/:slug" element={<><ArticleDetail /><StickyAd /></>} />
+            <Route path="/" element={<Index />} />
+            <Route path="/quizzes" element={<Quizzes />} />
+            <Route path="/quiz/:id" element={<QuizDetail />} />
+            <Route path="/quiz/:id/terms" element={<QuizTerms />} />
+            <Route path="/quiz/:id/play" element={<QuizPlay />} />
+            <Route path="/quiz/:id/iframe" element={<QuizIframe />} />
+            <Route path="/quiz/:id/result" element={<QuizResult />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/artikel/:slug" element={<ArticleDetail />} />
             
-            {/* Admin Routes - No Sticky Ad */}
+            {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={
               <ProtectedRoute requireAdmin>

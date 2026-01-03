@@ -23,18 +23,15 @@ const AdminSettings = () => {
   const updateSetting = useUpdateSetting();
 
   const [branding, setBranding] = useState({
-    site_name: 'QuizMind',
+    site_name: 'Wfind',
     logo_url: '',
   });
 
   const [adsense, setAdsense] = useState({
     enabled: false,
     script_code: '',
-  });
-
-  const [adsDisplay, setAdsDisplay] = useState({
-    ads_per_page: 3,
-    sticky_ad_enabled: true,
+    header_html: '',
+    footer_html: '',
   });
 
   const [ai, setAi] = useState({
@@ -64,7 +61,7 @@ const AdminSettings = () => {
       const brandingSettings = (settings as any).branding;
       if (brandingSettings) {
         setBranding({
-          site_name: brandingSettings.site_name || 'QuizMind',
+          site_name: brandingSettings.site_name || 'Wfind',
           logo_url: brandingSettings.logo_url || '',
         });
       }
@@ -72,13 +69,8 @@ const AdminSettings = () => {
         setAdsense({
           enabled: settings.adsense.enabled || false,
           script_code: settings.adsense.script_code || '',
-        });
-      }
-      const adsDisplaySettings = (settings as any).ads_display;
-      if (adsDisplaySettings) {
-        setAdsDisplay({
-          ads_per_page: adsDisplaySettings.ads_per_page ?? 3,
-          sticky_ad_enabled: adsDisplaySettings.sticky_ad_enabled !== false,
+          header_html: (settings.adsense as any).header_html || '',
+          footer_html: (settings.adsense as any).footer_html || '',
         });
       }
       if (settings.ai) {
@@ -100,10 +92,6 @@ const AdminSettings = () => {
 
   const handleSaveAdsense = () => {
     updateSetting.mutate({ key: 'adsense', value: adsense });
-  };
-
-  const handleSaveAdsDisplay = () => {
-    updateSetting.mutate({ key: 'ads_display', value: adsDisplay });
   };
 
   const handleSaveAI = () => {
@@ -208,7 +196,7 @@ const AdminSettings = () => {
                 id="site-name"
                 value={branding.site_name}
                 onChange={(e) => setBranding({ ...branding, site_name: e.target.value })}
-                placeholder="QuizMind"
+                placeholder="Wfind"
               />
               <p className="text-xs text-muted-foreground">
                 Nama ini akan ditampilkan di navbar dan seluruh situs.
@@ -246,10 +234,10 @@ const AdminSettings = () => {
           </div>
         </section>
 
-        {/* Google Adsense */}
+        {/* Google Adsense with Header/Footer HTML */}
         <section className="bg-card rounded-2xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">🔔 Google AdSense</h2>
+            <h2 className="text-lg font-semibold">🔔 Google AdSense & Iklan</h2>
             <div className="flex items-center gap-2">
               <Label htmlFor="adsense-enabled">Aktif</Label>
               <Switch
@@ -261,7 +249,7 @@ const AdminSettings = () => {
           </div>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="adsense-script">Kode Script AdSense</Label>
+              <Label htmlFor="adsense-script">Kode Script AdSense (Auto Ads / Default)</Label>
               <Textarea
                 id="adsense-script"
                 value={adsense.script_code}
@@ -276,51 +264,69 @@ const AdminSettings = () => {
 <script>
      (adsbygoogle = window.adsbygoogle || []).push({});
 </script>`}
-                rows={10}
+                rows={8}
                 className="font-mono text-sm"
               />
               <p className="text-xs text-muted-foreground">
-                Paste langsung kode script AdSense lengkap dari Google AdSense. Tidak perlu dipisah-pisah.
+                Kode script default AdSense untuk halaman quiz dan konten.
               </p>
             </div>
-            <Button onClick={handleSaveAdsense} disabled={updateSetting.isPending} className="gap-2">
-              {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Simpan AdSense
-            </Button>
-          </div>
-        </section>
 
-        {/* Ads Display Settings */}
-        <section className="bg-card rounded-2xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">📊 Pengaturan Tampilan Iklan</h2>
-          <div className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="ads-per-page">Jumlah Iklan per Halaman</Label>
-                <Select 
-                  value={adsDisplay.ads_per_page.toString()} 
-                  onValueChange={(v) => setAdsDisplay({ ...adsDisplay, ads_per_page: parseInt(v) })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1, 2, 3, 4, 5, 6].map(n => (
-                      <SelectItem key={n} value={n.toString()}>{n} iklan</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-2 pt-6">
-                <Switch
-                  id="sticky-ad"
-                  checked={adsDisplay.sticky_ad_enabled}
-                  onCheckedChange={(checked) => setAdsDisplay({ ...adsDisplay, sticky_ad_enabled: checked })}
-                />
-                <Label htmlFor="sticky-ad">Tampilkan Sticky Ad (Footer)</Label>
+            <div className="border-t pt-4 mt-4">
+              <h3 className="text-md font-medium mb-3">📍 Iklan Manual (Header & Footer)</h3>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="header-html">HTML Iklan Header (Halaman Utama & Artikel)</Label>
+                  <Textarea
+                    id="header-html"
+                    value={adsense.header_html}
+                    onChange={(e) => setAdsense({ ...adsense, header_html: e.target.value })}
+                    placeholder={`<!-- Paste kode iklan untuk ditampilkan di bagian atas halaman -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-XXXXX"
+     data-ad-slot="HEADER_SLOT"
+     data-ad-format="horizontal"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>`}
+                    rows={6}
+                    className="font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Iklan ini akan muncul di bagian atas (setelah header) pada halaman utama dan artikel.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="footer-html">HTML Iklan Footer (Halaman Utama & Artikel)</Label>
+                  <Textarea
+                    id="footer-html"
+                    value={adsense.footer_html}
+                    onChange={(e) => setAdsense({ ...adsense, footer_html: e.target.value })}
+                    placeholder={`<!-- Paste kode iklan untuk ditampilkan di bagian bawah halaman -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-XXXXX"
+     data-ad-slot="FOOTER_SLOT"
+     data-ad-format="horizontal"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>`}
+                    rows={6}
+                    className="font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Iklan ini akan muncul di bagian bawah (sebelum footer) pada halaman utama dan artikel.
+                  </p>
+                </div>
               </div>
             </div>
-            <Button onClick={handleSaveAdsDisplay} disabled={updateSetting.isPending} className="gap-2">
+
+            <Button onClick={handleSaveAdsense} disabled={updateSetting.isPending} className="gap-2">
               {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Simpan Pengaturan Iklan
             </Button>
@@ -477,7 +483,7 @@ const AdminSettings = () => {
                   id="admin-name"
                   value={newAdmin.full_name}
                   onChange={(e) => setNewAdmin({ ...newAdmin, full_name: e.target.value })}
-                  placeholder="John Doe"
+                  placeholder="Nama Admin"
                 />
               </div>
             </div>
@@ -503,7 +509,7 @@ const AdminSettings = () => {
             </div>
             <Button 
               onClick={handleCreateAdmin} 
-              disabled={isCreatingAdmin} 
+              disabled={isCreatingAdmin}
               className="gap-2"
             >
               {isCreatingAdmin ? (
