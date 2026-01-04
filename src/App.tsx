@@ -14,6 +14,7 @@ import QuizIframe from "./pages/QuizIframe";
 import QuizResult from "./pages/QuizResult";
 import About from "./pages/About";
 import ArticleDetail from "./pages/ArticleDetail";
+import ShortlinkRedirect from "./pages/ShortlinkRedirect";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminQuizzes from "./pages/admin/AdminQuizzes";
@@ -23,6 +24,7 @@ import AdminArticles from "./pages/admin/AdminArticles";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminContent from "./pages/admin/AdminContent";
 import AdminDataExport from "./pages/admin/AdminDataExport";
+import AdminShortlinks from "./pages/admin/AdminShortlinks";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +47,7 @@ const App = () => (
             <Route path="/quiz/:id/result" element={<QuizResult />} />
             <Route path="/about" element={<About />} />
             <Route path="/artikel/:slug" element={<ArticleDetail />} />
+            <Route path="/s/:code" element={<ShortlinkRedirect />} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
@@ -86,6 +89,11 @@ const App = () => (
             <Route path="/admin/export" element={
               <ProtectedRoute requireAdmin>
                 <AdminDataExport />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/shortlinks" element={
+              <ProtectedRoute requireAdmin>
+                <AdminShortlinks />
               </ProtectedRoute>
             } />
             

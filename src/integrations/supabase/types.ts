@@ -332,6 +332,92 @@ export type Database = {
         }
         Relationships: []
       }
+      shortlink_clicks: {
+        Row: {
+          browser: string | null
+          city: string | null
+          clicked_at: string
+          country: string | null
+          device_type: string | null
+          id: string
+          ip_address: string | null
+          os: string | null
+          referer: string | null
+          shortlink_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          browser?: string | null
+          city?: string | null
+          clicked_at?: string
+          country?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          os?: string | null
+          referer?: string | null
+          shortlink_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          browser?: string | null
+          city?: string | null
+          clicked_at?: string
+          country?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          os?: string | null
+          referer?: string | null
+          shortlink_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shortlink_clicks_shortlink_id_fkey"
+            columns: ["shortlink_id"]
+            isOneToOne: false
+            referencedRelation: "shortlinks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shortlinks: {
+        Row: {
+          click_count: number | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          short_code: string
+          target_url: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          click_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          short_code: string
+          target_url: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          click_count?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          short_code?: string
+          target_url?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           created_at: string

@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { useQuiz } from '@/hooks/useQuizzes';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
+import { PopularQuizzesSidebar } from '@/components/quiz/PopularQuizzesSidebar';
+import { RecommendedQuizzes } from '@/components/quiz/RecommendedQuizzes';
 
 const categoryLabels: Record<string, string> = {
   kepribadian: 'Kepribadian',
@@ -54,13 +56,13 @@ const QuizDetail = () => {
   return (
     <Layout>
       {/* Hero Banner */}
-      <div className="relative h-64 md:h-80 overflow-hidden">
+      <div className="relative h-48 md:h-64 overflow-hidden">
         <img
           src={quiz.banner_url || quiz.thumbnail_url || '/placeholder.svg'}
           alt={quiz.title}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
         
         {/* Back button */}
         <div className="absolute top-4 left-4">
@@ -73,60 +75,84 @@ const QuizDetail = () => {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="container mx-auto px-4 -mt-20 relative z-10">
-        <div className="max-w-3xl mx-auto">
-          {/* Card */}
-          <div className="bg-card rounded-2xl shadow-xl p-6 md:p-8">
-            {/* Category Badge */}
-            <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary mb-4">
-              {categoryLabels[category] || category}
-            </span>
+      {/* Two Column Layout */}
+      <div className="container mx-auto px-4 -mt-16 relative z-10">
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Main Content - Larger Column */}
+          <div className="lg:col-span-2">
+            {/* Main Card */}
+            <div className="bg-card rounded-2xl shadow-xl p-6 md:p-8">
+              {/* Category Badge */}
+              <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary mb-4">
+                {categoryLabels[category] || category}
+              </span>
 
-            {/* Title */}
-            <h1 className="text-2xl md:text-3xl font-bold mb-4">{quiz.title}</h1>
+              {/* Title */}
+              <h1 className="text-2xl md:text-3xl font-bold mb-4">{quiz.title}</h1>
 
-            {/* Meta info */}
-            <div className="flex flex-wrap items-center gap-4 mb-6 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                <span>{quiz.estimated_time || 5} menit</span>
+              {/* Meta info */}
+              <div className="flex flex-wrap items-center gap-4 mb-6 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  <span>{quiz.estimated_time || 5} menit</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <HelpCircle className="h-4 w-4" />
+                  <span>{questionCount} pertanyaan</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <HelpCircle className="h-4 w-4" />
-                <span>{questionCount} pertanyaan</span>
+
+              {/* Description */}
+              <div 
+                className="prose prose-sm max-w-none mb-8 text-muted-foreground leading-relaxed [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-medium [&_h3]:mb-2 [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-primary [&_a]:underline"
+                dangerouslySetInnerHTML={{ 
+                  __html: quiz.description || quiz.short_description || 'Quiz menarik untuk kamu!' 
+                }}
+              />
+
+              {/* CTA with Ads */}
+              <div className="space-y-4">
+                <AdBanner slot="quiz-before-start" />
+                
+                <Button 
+                  variant="hero" 
+                  size="lg" 
+                  className="w-full md:w-auto"
+                  onClick={() => navigate(`/quiz/${id}/terms`)}
+                >
+                  <Play className="h-5 w-5" />
+                  Mulai Quiz
+                </Button>
+                
+                <AdBanner slot="quiz-after-start" />
               </div>
             </div>
 
-            {/* Description */}
-            <div 
-              className="prose prose-sm max-w-none mb-8 text-muted-foreground leading-relaxed [&_h1]:text-xl [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-medium [&_h3]:mb-2 [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-primary [&_a]:underline"
-              dangerouslySetInnerHTML={{ 
-                __html: quiz.description || quiz.short_description || 'Quiz menarik untuk kamu!' 
-              }}
-            />
+            {/* Recommended Quizzes Section */}
+            <div className="mt-8 bg-card rounded-2xl shadow-lg p-6">
+              <RecommendedQuizzes 
+                currentQuizId={id} 
+                currentCategory={category}
+              />
+            </div>
 
-            {/* CTA with Ads */}
-            <div className="space-y-4">
-              <AdBanner slot="quiz-before-start" />
-              
-              <Button 
-                variant="hero" 
-                size="lg" 
-                className="w-full md:w-auto"
-                onClick={() => navigate(`/quiz/${id}/terms`)}
-              >
-                <Play className="h-5 w-5" />
-                Mulai Quiz
-              </Button>
-              
-              <AdBanner slot="quiz-after-start" />
+            {/* Ad Banner Below */}
+            <div className="mt-6">
+              <AdBanner slot="quiz-detail" />
             </div>
           </div>
 
-          {/* Ad Banner */}
-          <div className="mt-8">
-            <AdBanner slot="quiz-detail" />
+          {/* Sidebar - Smaller Column */}
+          <div className="lg:col-span-1">
+            {/* Popular Quizzes */}
+            <div className="bg-card rounded-2xl shadow-lg p-6 sticky top-4">
+              <PopularQuizzesSidebar currentQuizId={id} />
+              
+              {/* Sidebar Ad */}
+              <div className="mt-6 pt-6 border-t">
+                <AdBanner slot="quiz-sidebar" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
