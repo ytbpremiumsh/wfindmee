@@ -10,7 +10,8 @@ import {
   X,
   Home,
   FileText,
-  Database
+  Database,
+  Link2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -25,6 +26,7 @@ const sidebarLinks = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/quizzes', label: 'Kelola Quiz', icon: FileQuestion },
   { href: '/admin/articles', label: 'Kelola Artikel', icon: FileText },
+  { href: '/admin/shortlinks', label: 'Shortlinks', icon: Link2 },
   { href: '/admin/content', label: 'Konten Home', icon: Home },
   { href: '/admin/export', label: 'Export/Import', icon: Database },
   { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
