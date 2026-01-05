@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CheckCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Loader2, AtSign, User } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useQuiz } from '@/hooks/useQuizzes';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 import { cn } from '@/lib/utils';
@@ -13,10 +14,11 @@ const QuizPlay = () => {
   const { data: quiz, isLoading: quizLoading } = useQuiz(id);
   const { data: questions, isLoading: questionsLoading } = useQuizQuestions(id);
   
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(-1); // -1 means username input screen
   const [answers, setAnswers] = useState<Record<string, { optionId: string; scores: Record<string, number> }>>({});
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [selectedScores, setSelectedScores] = useState<Record<string, number> | null>(null);
+  const [twitterUsername, setTwitterUsername] = useState('');
 
   const isLoading = quizLoading || questionsLoading;
 
@@ -41,6 +43,94 @@ const QuizPlay = () => {
               Kembali ke Beranda
             </Button>
           </Link>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Username input screen
+  if (currentIndex === -1) {
+    const cleanUsername = twitterUsername.replace('@', '').trim();
+    
+    return (
+      <Layout showFooter={false}>
+        <div className="min-h-[calc(100vh-4rem)] flex flex-col">
+          {/* Progress Header */}
+          <div className="sticky top-16 bg-background/95 backdrop-blur-sm border-b border-border z-10">
+            <div className="container mx-auto px-4 py-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Sebelum mulai</span>
+                <span className="text-sm font-medium text-primary">0%</span>
+              </div>
+              <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
+                <div className="h-full bg-primary transition-all duration-300" style={{ width: '0%' }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Username Input */}
+          <div className="flex-1 flex items-center py-8">
+            <div className="container mx-auto px-4">
+              <div className="max-w-md mx-auto text-center animate-fade-in">
+                {/* Avatar Preview */}
+                <div className="mb-6 flex justify-center">
+                  {cleanUsername ? (
+                    <img 
+                      src={`https://unavatar.io/x/${cleanUsername}`} 
+                      alt="Profile"
+                      className="w-24 h-24 rounded-full border-4 border-primary shadow-lg object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/placeholder.svg';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full border-4 border-border bg-muted flex items-center justify-center">
+                      <User className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                
+                <h2 className="text-xl md:text-2xl font-semibold mb-4">
+                  Masukkan Username X/Twitter kamu
+                </h2>
+                <p className="text-muted-foreground mb-6">
+                  Foto profil akan ditampilkan di hasil quiz
+                </p>
+                
+                <div className="relative mb-6">
+                  <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    value={twitterUsername}
+                    onChange={(e) => setTwitterUsername(e.target.value)}
+                    placeholder="username_kamu"
+                    className="pl-12 h-14 text-lg"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setTwitterUsername('');
+                      setCurrentIndex(0);
+                    }}
+                    className="flex-1"
+                  >
+                    Lewati
+                  </Button>
+                  <Button
+                    variant="hero"
+                    onClick={() => setCurrentIndex(0)}
+                    className="flex-1"
+                  >
+                    Mulai Quiz
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </Layout>
     );
@@ -77,7 +167,13 @@ const QuizPlay = () => {
         });
       });
       
-      navigate(`/quiz/${id}/result`, { state: { answers: newAnswers, totalScores } });
+      navigate(`/quiz/${id}/result`, { 
+        state: { 
+          answers: newAnswers, 
+          totalScores,
+          twitterUsername: twitterUsername.replace('@', '').trim() 
+        } 
+      });
     } else {
       setCurrentIndex(currentIndex + 1);
       const nextAnswer = answers[questions[currentIndex + 1]?.id];
@@ -102,6 +198,9 @@ const QuizPlay = () => {
       const prevAnswer = answers[questions[currentIndex - 1]?.id];
       setSelectedOption(prevAnswer?.optionId || null);
       setSelectedScores(prevAnswer?.scores || null);
+    } else if (currentIndex === 0) {
+      // Go back to username screen
+      setCurrentIndex(-1);
     }
   };
 
@@ -202,7 +301,6 @@ const QuizPlay = () => {
               <Button
                 variant="outline"
                 onClick={handleBack}
-                disabled={currentIndex === 0}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Sebelumnya

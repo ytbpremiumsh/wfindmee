@@ -95,9 +95,9 @@ interface ResultForm {
   image_mode: ImageMode;
   template_id: string;
   gradient_id: string;
-  best_match_type: string;
+  best_match_types: string[];
   best_match_icon: string;
-  worst_match_type: string;
+  worst_match_types: string[];
   worst_match_icon: string;
 }
 
@@ -127,9 +127,9 @@ const AdminQuizResults = () => {
     image_mode: 'custom',
     template_id: 'default',
     gradient_id: 'purple',
-    best_match_type: '',
+    best_match_types: [],
     best_match_icon: '',
-    worst_match_type: '',
+    worst_match_types: [],
     worst_match_icon: '',
   });
 
@@ -155,9 +155,9 @@ const AdminQuizResults = () => {
       image_mode: 'custom',
       template_id: 'default',
       gradient_id: 'purple',
-      best_match_type: '',
+      best_match_types: [],
       best_match_icon: '',
-      worst_match_type: '',
+      worst_match_types: [],
       worst_match_icon: '',
     });
     setIsEditorOpen(true);
@@ -177,9 +177,9 @@ const AdminQuizResults = () => {
       image_mode: result.image_mode || 'custom',
       template_id: result.template_id || 'default',
       gradient_id: result.gradient_id || 'purple',
-      best_match_type: result.best_match_type || '',
+      best_match_types: Array.isArray(result.best_match_type) ? result.best_match_type : (result.best_match_type ? [result.best_match_type] : []),
       best_match_icon: result.best_match_icon || '',
-      worst_match_type: result.worst_match_type || '',
+      worst_match_types: Array.isArray(result.worst_match_type) ? result.worst_match_type : (result.worst_match_type ? [result.worst_match_type] : []),
       worst_match_icon: result.worst_match_icon || '',
     });
     setIsEditorOpen(true);
@@ -273,9 +273,9 @@ const AdminQuizResults = () => {
         image_mode: formData.image_mode,
         template_id: formData.template_id,
         gradient_id: formData.gradient_id,
-        best_match_type: formData.best_match_type || null,
+        best_match_type: formData.best_match_types.length > 0 ? formData.best_match_types : [],
         best_match_icon: formData.best_match_icon || null,
-        worst_match_type: formData.worst_match_type || null,
+        worst_match_type: formData.worst_match_types.length > 0 ? formData.worst_match_types : [],
         worst_match_icon: formData.worst_match_icon || null,
       };
 
@@ -408,14 +408,14 @@ const AdminQuizResults = () => {
                 </p>
                 <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                   <span className="bg-muted px-2 py-1 rounded">Skor: {result.min_score} - {result.max_score}</span>
-                  {result.best_match_type && (
+                  {Array.isArray(result.best_match_type) && result.best_match_type.length > 0 && (
                     <span className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded flex items-center gap-1">
-                      <Heart className="h-3 w-3" /> {result.best_match_type}
+                      <Heart className="h-3 w-3" /> {result.best_match_type.join(', ')}
                     </span>
                   )}
-                  {result.worst_match_type && (
+                  {Array.isArray(result.worst_match_type) && result.worst_match_type.length > 0 && (
                     <span className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded flex items-center gap-1">
-                      <HeartCrack className="h-3 w-3" /> {result.worst_match_type}
+                      <HeartCrack className="h-3 w-3" /> {result.worst_match_type.join(', ')}
                     </span>
                   )}
                 </div>
@@ -501,28 +501,49 @@ const AdminQuizResults = () => {
                 Kompatibilitas (Opsional)
               </h3>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Paling Klik Sama</Label>
-                  <Select 
-                    value={formData.best_match_type || "none"} 
-                    onValueChange={(v) => setFormData({ ...formData, best_match_type: v === "none" ? "" : v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih tipe" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Tidak ada</SelectItem>
-                      {resultTypes
-                        .filter(r => r.personality_type !== formData.personality_type)
-                        .map((r) => (
-                          <SelectItem key={r.personality_type} value={r.personality_type}>
-                            {r.title} ({r.personality_type})
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Paling Klik Sama (Pilih 1-3)</Label>
+                  <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded-lg p-3">
+                    {resultTypes
+                      .filter(r => r.personality_type !== formData.personality_type)
+                      .map((r) => (
+                        <label 
+                          key={r.personality_type} 
+                          className="flex items-center gap-2 cursor-pointer hover:bg-accent/50 p-2 rounded"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.best_match_types.includes(r.personality_type)}
+                            onChange={(e) => {
+                              if (e.target.checked && formData.best_match_types.length < 3) {
+                                setFormData({ ...formData, best_match_types: [...formData.best_match_types, r.personality_type] });
+                              } else if (!e.target.checked) {
+                                setFormData({ ...formData, best_match_types: formData.best_match_types.filter(t => t !== r.personality_type) });
+                              }
+                            }}
+                            className="h-4 w-4 rounded border-primary text-primary"
+                          />
+                          <span className="text-sm">{r.title} ({r.personality_type})</span>
+                        </label>
+                      ))}
+                  </div>
+                  {formData.best_match_types.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {formData.best_match_types.map(t => (
+                        <span key={t} className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded text-xs flex items-center gap-1">
+                          <Heart className="h-3 w-3" /> {t}
+                          <button 
+                            type="button"
+                            onClick={() => setFormData({ ...formData, best_match_types: formData.best_match_types.filter(x => x !== t) })}
+                            className="ml-1 hover:text-red-500"
+                          >×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
+
                 <div className="space-y-2">
                   <Label>Icon Klik (URL)</Label>
                   <Input
@@ -531,30 +552,49 @@ const AdminQuizResults = () => {
                     placeholder="https://... atau emoji 💕"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4 mt-3">
                 <div className="space-y-2">
-                  <Label>Paling Cekcok Sama</Label>
-                  <Select 
-                    value={formData.worst_match_type || "none"} 
-                    onValueChange={(v) => setFormData({ ...formData, worst_match_type: v === "none" ? "" : v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih tipe" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Tidak ada</SelectItem>
-                      {resultTypes
-                        .filter(r => r.personality_type !== formData.personality_type)
-                        .map((r) => (
-                          <SelectItem key={r.personality_type} value={r.personality_type}>
-                            {r.title} ({r.personality_type})
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Paling Cekcok Sama (Pilih 1-3)</Label>
+                  <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded-lg p-3">
+                    {resultTypes
+                      .filter(r => r.personality_type !== formData.personality_type)
+                      .map((r) => (
+                        <label 
+                          key={r.personality_type} 
+                          className="flex items-center gap-2 cursor-pointer hover:bg-accent/50 p-2 rounded"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.worst_match_types.includes(r.personality_type)}
+                            onChange={(e) => {
+                              if (e.target.checked && formData.worst_match_types.length < 3) {
+                                setFormData({ ...formData, worst_match_types: [...formData.worst_match_types, r.personality_type] });
+                              } else if (!e.target.checked) {
+                                setFormData({ ...formData, worst_match_types: formData.worst_match_types.filter(t => t !== r.personality_type) });
+                              }
+                            }}
+                            className="h-4 w-4 rounded border-destructive text-destructive"
+                          />
+                          <span className="text-sm">{r.title} ({r.personality_type})</span>
+                        </label>
+                      ))}
+                  </div>
+                  {formData.worst_match_types.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {formData.worst_match_types.map(t => (
+                        <span key={t} className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded text-xs flex items-center gap-1">
+                          <HeartCrack className="h-3 w-3" /> {t}
+                          <button 
+                            type="button"
+                            onClick={() => setFormData({ ...formData, worst_match_types: formData.worst_match_types.filter(x => x !== t) })}
+                            className="ml-1 hover:text-red-500"
+                          >×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
+
                 <div className="space-y-2">
                   <Label>Icon Cekcok (URL)</Label>
                   <Input
@@ -565,7 +605,7 @@ const AdminQuizResults = () => {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                Pilih tipe hasil lain yang paling cocok atau paling tidak cocok dengan tipe ini. Icon bisa berupa URL gambar atau emoji.
+                Pilih tipe hasil lain yang paling cocok atau paling tidak cocok dengan tipe ini (maksimal 3). Icon bisa berupa URL gambar atau emoji.
               </p>
             </div>
 
