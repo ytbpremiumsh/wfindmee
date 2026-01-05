@@ -204,7 +204,7 @@ export type Database = {
       quiz_results: {
         Row: {
           best_match_icon: string | null
-          best_match_type: string | null
+          best_match_type: string[] | null
           created_at: string
           description: string | null
           gradient_id: string | null
@@ -221,11 +221,11 @@ export type Database = {
           updated_at: string
           weaknesses: string[] | null
           worst_match_icon: string | null
-          worst_match_type: string | null
+          worst_match_type: string[] | null
         }
         Insert: {
           best_match_icon?: string | null
-          best_match_type?: string | null
+          best_match_type?: string[] | null
           created_at?: string
           description?: string | null
           gradient_id?: string | null
@@ -242,11 +242,11 @@ export type Database = {
           updated_at?: string
           weaknesses?: string[] | null
           worst_match_icon?: string | null
-          worst_match_type?: string | null
+          worst_match_type?: string[] | null
         }
         Update: {
           best_match_icon?: string | null
-          best_match_type?: string | null
+          best_match_type?: string[] | null
           created_at?: string
           description?: string | null
           gradient_id?: string | null
@@ -263,7 +263,7 @@ export type Database = {
           updated_at?: string
           weaknesses?: string[] | null
           worst_match_icon?: string | null
-          worst_match_type?: string | null
+          worst_match_type?: string[] | null
         }
         Relationships: [
           {
@@ -451,6 +451,7 @@ export type Database = {
           quiz_id: string
           result_id: string | null
           scores: Json | null
+          twitter_username: string | null
           user_id: string | null
         }
         Insert: {
@@ -461,6 +462,7 @@ export type Database = {
           quiz_id: string
           result_id?: string | null
           scores?: Json | null
+          twitter_username?: string | null
           user_id?: string | null
         }
         Update: {
@@ -471,6 +473,7 @@ export type Database = {
           quiz_id?: string
           result_id?: string | null
           scores?: Json | null
+          twitter_username?: string | null
           user_id?: string | null
         }
         Relationships: [

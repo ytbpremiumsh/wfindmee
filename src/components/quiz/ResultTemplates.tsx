@@ -10,6 +10,7 @@ interface ResultData {
   image_mode?: string;
   template_id?: string;
   gradient_id?: string;
+  twitter_username?: string;
 }
 
 interface TemplateProps {
@@ -25,16 +26,15 @@ const GRADIENT_MAP: Record<string, string> = {
   dark: 'from-gray-700 to-gray-900',
 };
 
-// Image Only Template - Full image display without text
+// Image Only Template - Full image display without text, preserving aspect ratio
 export const ImageOnlyTemplate = ({ result }: TemplateProps) => (
   <div className="bg-card rounded-3xl shadow-xl overflow-hidden">
-    <div className="relative aspect-square sm:aspect-[4/3]">
-      <img
-        src={result.image_url || '/placeholder.svg'}
-        alt={result.title}
-        className="w-full h-full object-cover"
-      />
-    </div>
+    <img
+      src={result.image_url || '/placeholder.svg'}
+      alt={result.title}
+      className="w-full h-auto object-contain"
+      style={{ maxHeight: '80vh' }}
+    />
   </div>
 );
 
@@ -48,6 +48,19 @@ export const DefaultTemplate = ({ result }: TemplateProps) => (
         className="w-full h-full object-cover"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+      {/* Twitter Avatar Overlay */}
+      {result.twitter_username && (
+        <div className="absolute top-4 right-4">
+          <img 
+            src={`https://unavatar.io/x/${result.twitter_username}`}
+            alt={result.twitter_username}
+            className="w-12 h-12 rounded-full border-2 border-white shadow-lg object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        </div>
+      )}
     </div>
     <div className="p-6 md:p-8 -mt-16 relative">
       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-lg font-bold mb-4">
@@ -66,9 +79,20 @@ export const GradientTemplate = ({ result }: TemplateProps) => {
   return (
     <div className={`rounded-3xl shadow-xl overflow-hidden bg-gradient-to-br ${gradient}`}>
       <div className="p-8 md:p-12 text-white text-center">
-        <div className="text-6xl mb-4">
-          <Sparkles className="h-16 w-16 mx-auto" />
-        </div>
+        {result.twitter_username ? (
+          <img 
+            src={`https://unavatar.io/x/${result.twitter_username}`}
+            alt={result.twitter_username}
+            className="w-20 h-20 rounded-full border-4 border-white/30 shadow-lg object-cover mx-auto mb-4"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        ) : (
+          <div className="text-6xl mb-4">
+            <Sparkles className="h-16 w-16 mx-auto" />
+          </div>
+        )}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur text-sm font-bold mb-4">
           {result.personality_type}
         </div>
@@ -82,6 +106,16 @@ export const GradientTemplate = ({ result }: TemplateProps) => {
 // Minimal Clean Template
 export const MinimalTemplate = ({ result }: TemplateProps) => (
   <div className="bg-card rounded-3xl shadow-xl overflow-hidden p-8 md:p-12 text-center border-2 border-border">
+    {result.twitter_username && (
+      <img 
+        src={`https://unavatar.io/x/${result.twitter_username}`}
+        alt={result.twitter_username}
+        className="w-16 h-16 rounded-full border-2 border-primary shadow-lg object-cover mx-auto mb-4"
+        onError={(e) => {
+          (e.target as HTMLImageElement).style.display = 'none';
+        }}
+      />
+    )}
     <span className="text-xs uppercase tracking-widest text-muted-foreground">
       Kamu adalah
     </span>
