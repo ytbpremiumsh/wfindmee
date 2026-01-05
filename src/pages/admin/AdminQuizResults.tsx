@@ -505,14 +505,14 @@ const AdminQuizResults = () => {
                 <div className="space-y-2">
                   <Label>Paling Klik Sama</Label>
                   <Select 
-                    value={formData.best_match_type} 
-                    onValueChange={(v) => setFormData({ ...formData, best_match_type: v })}
+                    value={formData.best_match_type || "none"} 
+                    onValueChange={(v) => setFormData({ ...formData, best_match_type: v === "none" ? "" : v })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih tipe" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tidak ada</SelectItem>
+                      <SelectItem value="none">Tidak ada</SelectItem>
                       {resultTypes
                         .filter(r => r.personality_type !== formData.personality_type)
                         .map((r) => (
@@ -537,14 +537,14 @@ const AdminQuizResults = () => {
                 <div className="space-y-2">
                   <Label>Paling Cekcok Sama</Label>
                   <Select 
-                    value={formData.worst_match_type} 
-                    onValueChange={(v) => setFormData({ ...formData, worst_match_type: v })}
+                    value={formData.worst_match_type || "none"} 
+                    onValueChange={(v) => setFormData({ ...formData, worst_match_type: v === "none" ? "" : v })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih tipe" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tidak ada</SelectItem>
+                      <SelectItem value="none">Tidak ada</SelectItem>
                       {resultTypes
                         .filter(r => r.personality_type !== formData.personality_type)
                         .map((r) => (
