@@ -26,14 +26,13 @@ const GRADIENT_MAP: Record<string, string> = {
   dark: 'from-gray-700 to-gray-900',
 };
 
-// Image Only Template - Full image display without text, preserving aspect ratio
+// Image Only Template - Full image display without cropping, portrait-friendly
 export const ImageOnlyTemplate = ({ result }: TemplateProps) => (
-  <div className="bg-card rounded-3xl shadow-xl overflow-hidden">
+  <div className="bg-card rounded-3xl shadow-xl overflow-hidden flex items-center justify-center p-4">
     <img
       src={result.image_url || '/placeholder.svg'}
       alt={result.title}
-      className="w-full h-auto object-contain"
-      style={{ maxHeight: '80vh' }}
+      className="max-w-full max-h-[85vh] w-auto h-auto object-contain rounded-2xl"
     />
   </div>
 );
