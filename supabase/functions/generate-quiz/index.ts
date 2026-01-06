@@ -81,9 +81,6 @@ serve(async (req) => {
       model = selectedModel;
     }
 
-    // Generate personality type names first
-    const personalityTypes = Array.from({ length: resultCount }, (_, i) => `type${i + 1}`);
-
     const systemPrompt = `Kamu adalah pembuat quiz kepribadian profesional berbahasa Indonesia. 
 
 GAYA PENULISAN:
@@ -95,6 +92,11 @@ ATURAN MUTLAK YANG HARUS DIIKUTI:
 - Kamu WAJIB menghasilkan TEPAT ${resultCount} tipe kepribadian hasil
 - Semua konten HARUS dalam Bahasa Indonesia
 - Terapkan gaya penulisan di atas pada SEMUA pertanyaan, pilihan jawaban, dan deskripsi hasil
+
+ATURAN PENTING UNTUK PERSONALITY_TYPE:
+- personality_type HARUS berupa nama deskriptif yang mudah diingat (contoh: "Pemimpin", "Kreator", "Analitis", "Petualang", dll)
+- JANGAN GUNAKAN "type1", "type2", dll. Gunakan nama yang menggambarkan tipe kepribadian
+- Nama personality_type harus singkat (1-2 kata) dan menarik
 
 JANGAN PERNAH menghasilkan hanya 1 pertanyaan. Selalu hasilkan ${questionCount} pertanyaan yang BERBEDA-BEDA.`;
 
@@ -114,9 +116,6 @@ SPESIFIKASI WAJIB:
 ✓ Pilihan per Pertanyaan: ${optionCount} pilihan
 ✓ Tipe Hasil: ${resultCount} tipe kepribadian
 
-TIPE KEPRIBADIAN YANG HARUS DIGUNAKAN:
-${personalityTypes.map((t, i) => `${i + 1}. ${t}`).join('\n')}
-
 PANDUAN MEMBUAT ${questionCount} PERTANYAAN:
 ${questionTopics.join('\n')}
 
@@ -132,9 +131,13 @@ CONTOH TOPIK PERTANYAAN (gunakan sebagai inspirasi untuk ${questionCount} pertan
 9. Cara mengelola waktu
 10. Pendekatan terhadap tugas baru
 
-ATURAN PERSONALITY_SCORES:
-- Setiap pilihan harus punya skor untuk SEMUA ${resultCount} tipe: ${personalityTypes.join(', ')}
+ATURAN PERSONALITY_TYPE DAN SCORES:
+- Buat ${resultCount} tipe kepribadian dengan NAMA DESKRIPTIF (contoh: "Pemimpin", "Kreator", "Analitis", bukan "type1", "type2")
+- personality_type harus singkat, menarik, dan mudah diingat (1-2 kata dalam Bahasa Indonesia)
+- Setiap pilihan jawaban harus punya personality_scores berupa object dengan key = nama personality_type
+- Contoh personality_scores: {"Pemimpin": 4, "Kreator": 2, "Analitis": 1}
 - Skor range: 1-5 (1=tidak cocok, 5=sangat cocok)
+- Pastikan setiap pilihan memiliki distribusi skor yang masuk akal (tidak semua sama)
 
 INGAT: Kamu HARUS menghasilkan TEPAT ${questionCount} pertanyaan dalam array questions. Tidak boleh kurang!`;
 
