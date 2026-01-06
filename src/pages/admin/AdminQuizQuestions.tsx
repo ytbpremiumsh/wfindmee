@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   ArrowLeft, 
   Plus, 
@@ -13,10 +14,12 @@ import {
   Save, 
   Loader2,
   X,
-  ImagePlus
+  ImagePlus,
+  Info
 } from 'lucide-react';
 import { useQuiz } from '@/hooks/useQuizzes';
 import { useQuizQuestions, useCreateQuestion, useUpdateQuestion, useDeleteQuestion } from '@/hooks/useQuizQuestions';
+import { useQuizResults } from '@/hooks/useQuizResults';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
@@ -41,6 +44,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { toast } from '@/hooks/use-toast';
 
 interface QuestionOption {
@@ -62,9 +71,16 @@ const AdminQuizQuestions = () => {
   
   const { data: quiz, isLoading: isQuizLoading } = useQuiz(quizId);
   const { data: questions, isLoading: isQuestionsLoading } = useQuizQuestions(quizId);
+  const { data: quizResults, isLoading: isResultsLoading } = useQuizResults(quizId);
   const createQuestion = useCreateQuestion();
   const updateQuestion = useUpdateQuestion();
   const deleteQuestion = useDeleteQuestion();
+
+  // Get unique personality types from quiz results
+  const personalityTypes = useMemo(() => {
+    if (!quizResults || quizResults.length === 0) return [];
+    return quizResults.map(result => result.personality_type).filter(Boolean);
+  }, [quizResults]);
 
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
@@ -448,23 +464,84 @@ const AdminQuizQuestions = () => {
                       
                       {/* Personality Scores */}
                       <div className="space-y-2">
-                        <Label className="text-xs text-muted-foreground">Skor Kepribadian (opsional)</Label>
-                        <div className="flex flex-wrap gap-2">
-                          {['type1', 'type2', 'type3', 'type4'].map((scoreKey) => (
-                            <div key={scoreKey} className="flex items-center gap-1">
-                              <Label className="text-xs">{scoreKey}:</Label>
-                              <Input
-                                type="number"
-                                min={0}
-                                max={5}
-                                value={option.personality_scores[scoreKey] || ''}
-                                onChange={(e) => handleScoreChange(index, scoreKey, parseInt(e.target.value) || 0)}
-                                className="w-14 h-7 text-xs"
-                                placeholder="0"
-                              />
-                            </div>
-                          ))}
+                        <div className="flex items-center gap-2">
+                          <Label className="text-xs text-muted-foreground">Skor Kepribadian (opsional)</Label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                <p>Pilih tipe kepribadian dari hasil quiz dan berikan point. Semakin tinggi point, semakin besar kemungkinan mendapat hasil tersebut.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
+                        
+                        {personalityTypes.length === 0 ? (
+                          <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+                            <p className="flex items-center gap-1">
+                              <Info className="h-3 w-3" />
+                              Belum ada hasil quiz. Tambahkan hasil terlebih dahulu di halaman "Kelola Hasil" untuk mengaktifkan skor kepribadian.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-2 bg-muted/30 rounded-lg p-3">
+                            <p className="text-xs text-muted-foreground mb-2">
+                              Centang tipe yang relevan dan berikan point (1-5):
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {personalityTypes.map((personalityType) => {
+                                const isSelected = option.personality_scores[personalityType] !== undefined && option.personality_scores[personalityType] > 0;
+                                const score = option.personality_scores[personalityType] || 0;
+                                
+                                return (
+                                  <div 
+                                    key={personalityType} 
+                                    className={`flex items-center gap-2 p-2 rounded-md border transition-colors ${
+                                      isSelected ? 'border-primary bg-primary/5' : 'border-border/50 bg-background'
+                                    }`}
+                                  >
+                                    <Checkbox
+                                      checked={isSelected}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          handleScoreChange(index, personalityType, 1);
+                                        } else {
+                                          // Remove the score
+                                          const newOptions = [...formData.options];
+                                          const newScores = { ...newOptions[index].personality_scores };
+                                          delete newScores[personalityType];
+                                          newOptions[index] = {
+                                            ...newOptions[index],
+                                            personality_scores: newScores,
+                                          };
+                                          setFormData({ ...formData, options: newOptions });
+                                        }
+                                      }}
+                                    />
+                                    <span className="text-xs font-medium flex-1 truncate" title={personalityType}>
+                                      {personalityType}
+                                    </span>
+                                    {isSelected && (
+                                      <Input
+                                        type="number"
+                                        min={1}
+                                        max={5}
+                                        value={score}
+                                        onChange={(e) => {
+                                          const val = parseInt(e.target.value) || 1;
+                                          handleScoreChange(index, personalityType, Math.min(5, Math.max(1, val)));
+                                        }}
+                                        className="w-12 h-6 text-xs text-center"
+                                      />
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
