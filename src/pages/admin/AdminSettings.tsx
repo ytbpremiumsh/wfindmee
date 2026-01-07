@@ -34,6 +34,17 @@ const AdminSettings = () => {
     footer_html: '',
   });
 
+  const [adPlacements, setAdPlacements] = useState({
+    home: { count: 2 },
+    quiz: { count: 2 },
+    result: { count: 2 },
+  });
+
+  const [analytics, setAnalytics] = useState({
+    ga_enabled: false,
+    ga_tracking_id: '',
+  });
+
   const [ai, setAi] = useState({
     enabled: false,
     provider: 'lovable' as 'lovable' | 'openrouter',
@@ -73,6 +84,21 @@ const AdminSettings = () => {
           footer_html: (settings.adsense as any).footer_html || '',
         });
       }
+      const adPlacementsSettings = (settings as any).ad_placements;
+      if (adPlacementsSettings) {
+        setAdPlacements({
+          home: adPlacementsSettings.home || { count: 2 },
+          quiz: adPlacementsSettings.quiz || { count: 2 },
+          result: adPlacementsSettings.result || { count: 2 },
+        });
+      }
+      const analyticsSettings = (settings as any).analytics;
+      if (analyticsSettings) {
+        setAnalytics({
+          ga_enabled: analyticsSettings.ga_enabled || false,
+          ga_tracking_id: analyticsSettings.ga_tracking_id || '',
+        });
+      }
       if (settings.ai) {
         setAi({
           enabled: settings.ai.enabled || false,
@@ -92,6 +118,14 @@ const AdminSettings = () => {
 
   const handleSaveAdsense = () => {
     updateSetting.mutate({ key: 'adsense', value: adsense });
+  };
+
+  const handleSaveAdPlacements = () => {
+    updateSetting.mutate({ key: 'ad_placements', value: adPlacements });
+  };
+
+  const handleSaveAnalytics = () => {
+    updateSetting.mutate({ key: 'analytics', value: analytics });
   };
 
   const handleSaveAI = () => {
@@ -329,6 +363,116 @@ const AdminSettings = () => {
             <Button onClick={handleSaveAdsense} disabled={updateSetting.isPending} className="gap-2">
               {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Simpan Pengaturan Iklan
+            </Button>
+          </div>
+        </section>
+
+        {/* Ad Placements Settings */}
+        <section className="bg-card rounded-2xl p-6 shadow-sm">
+          <h2 className="text-lg font-semibold mb-4">📍 Jumlah Iklan Per Halaman</h2>
+          <p className="text-sm text-muted-foreground mb-4">
+            Atur jumlah slot iklan yang tampil di masing-masing halaman.
+          </p>
+          <div className="space-y-4">
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="ad-home">Halaman Utama</Label>
+                <Select 
+                  value={adPlacements.home.count.toString()} 
+                  onValueChange={(v) => setAdPlacements({ ...adPlacements, home: { count: parseInt(v) } })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[0, 1, 2, 3, 4, 5].map((n) => (
+                      <SelectItem key={n} value={n.toString()}>{n} Iklan</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="ad-quiz">Halaman Quiz</Label>
+                <Select 
+                  value={adPlacements.quiz.count.toString()} 
+                  onValueChange={(v) => setAdPlacements({ ...adPlacements, quiz: { count: parseInt(v) } })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[0, 1, 2, 3, 4, 5].map((n) => (
+                      <SelectItem key={n} value={n.toString()}>{n} Iklan</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="ad-result">Halaman Hasil</Label>
+                <Select 
+                  value={adPlacements.result.count.toString()} 
+                  onValueChange={(v) => setAdPlacements({ ...adPlacements, result: { count: parseInt(v) } })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[0, 1, 2, 3, 4, 5].map((n) => (
+                      <SelectItem key={n} value={n.toString()}>{n} Iklan</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Button onClick={handleSaveAdPlacements} disabled={updateSetting.isPending} className="gap-2">
+              {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Simpan Pengaturan Iklan
+            </Button>
+          </div>
+        </section>
+
+        {/* Google Analytics Settings */}
+        <section className="bg-card rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">📊 Google Analytics</h2>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="ga-enabled">Aktif</Label>
+              <Switch
+                id="ga-enabled"
+                checked={analytics.ga_enabled}
+                onCheckedChange={(checked) => setAnalytics({ ...analytics, ga_enabled: checked })}
+              />
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="ga-tracking-id">Tracking ID / Measurement ID</Label>
+              <Input
+                id="ga-tracking-id"
+                value={analytics.ga_tracking_id}
+                onChange={(e) => setAnalytics({ ...analytics, ga_tracking_id: e.target.value })}
+                placeholder="G-XXXXXXXXXX atau UA-XXXXXXXXX-X"
+              />
+              <p className="text-xs text-muted-foreground">
+                Masukkan Google Analytics Tracking ID. Untuk GA4 gunakan format G-XXXXXXXXXX, untuk Universal Analytics gunakan UA-XXXXXXXXX-X.
+              </p>
+            </div>
+            
+            {analytics.ga_enabled && analytics.ga_tracking_id && (
+              <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 text-sm">
+                <p className="font-medium text-green-700 dark:text-green-400">✅ Google Analytics Aktif</p>
+                <p className="text-green-600 dark:text-green-500 text-xs mt-1">
+                  Tracking ID: {analytics.ga_tracking_id}
+                </p>
+              </div>
+            )}
+
+            <Button onClick={handleSaveAnalytics} disabled={updateSetting.isPending} className="gap-2">
+              {updateSetting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Simpan Analytics
             </Button>
           </div>
         </section>

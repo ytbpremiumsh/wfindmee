@@ -359,7 +359,7 @@ export function QuizEditorDialog({ open, onOpenChange, quizId }: QuizEditorDialo
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {[5, 10, 15, 20, 25, 30].map((n) => (
+                            {[5, 10, 12, 15, 16, 20, 25, 30].map((n) => (
                               <SelectItem key={n} value={n.toString()}>{n} Soal</SelectItem>
                             ))}
                           </SelectContent>
