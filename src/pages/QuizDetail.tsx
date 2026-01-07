@@ -7,6 +7,7 @@ import { useQuiz } from '@/hooks/useQuizzes';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 import { PopularQuizzesSidebar } from '@/components/quiz/PopularQuizzesSidebar';
 import { RecommendedQuizzes } from '@/components/quiz/RecommendedQuizzes';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const categoryLabels: Record<string, string> = {
   kepribadian: 'Kepribadian',
@@ -23,6 +24,11 @@ const QuizDetail = () => {
   const navigate = useNavigate();
   const { data: quiz, isLoading } = useQuiz(id);
   const { data: questions } = useQuizQuestions(id);
+  const { data: settings } = useSiteSettings();
+
+  // Get ad count settings for quiz page
+  const adSettings = (settings as any)?.ad_placements?.quiz || { count: 2 };
+  const adCount = adSettings.count || 2;
 
   if (isLoading) {
     return (
@@ -112,7 +118,7 @@ const QuizDetail = () => {
 
               {/* CTA with Ads */}
               <div className="space-y-4">
-                <AdBanner slot="quiz-before-start" />
+                {adCount >= 1 && <AdBanner slot="quiz-before-start" />}
                 
                 <Button 
                   variant="hero" 
@@ -124,7 +130,7 @@ const QuizDetail = () => {
                   Mulai Quiz
                 </Button>
                 
-                <AdBanner slot="quiz-after-start" />
+                {adCount >= 2 && <AdBanner slot="quiz-after-start" />}
               </div>
             </div>
 
@@ -137,9 +143,11 @@ const QuizDetail = () => {
             </div>
 
             {/* Ad Banner Below */}
-            <div className="mt-6">
-              <AdBanner slot="quiz-detail" />
-            </div>
+            {adCount >= 3 && (
+              <div className="mt-6">
+                <AdBanner slot="quiz-detail" />
+              </div>
+            )}
           </div>
 
           {/* Sidebar - Smaller Column */}
@@ -149,9 +157,11 @@ const QuizDetail = () => {
               <PopularQuizzesSidebar currentQuizId={id} />
               
               {/* Sidebar Ad */}
-              <div className="mt-6 pt-6 border-t">
-                <AdBanner slot="quiz-sidebar" />
-              </div>
+              {adCount >= 4 && (
+                <div className="mt-6 pt-6 border-t">
+                  <AdBanner slot="quiz-sidebar" />
+                </div>
+              )}
             </div>
           </div>
         </div>

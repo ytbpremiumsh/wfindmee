@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/admin/ProtectedRoute";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import Index from "./pages/Index";
 import Quizzes from "./pages/Quizzes";
 import QuizDetail from "./pages/QuizDetail";
@@ -36,6 +37,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <GoogleAnalytics />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Index />} />
