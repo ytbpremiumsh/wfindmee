@@ -3,6 +3,8 @@ import { ArrowLeft, RefreshCw, Loader2 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { AdBanner } from '@/components/ads/AdBanner';
+import { HeaderAd } from '@/components/ads/HeaderAd';
+import { FooterAd } from '@/components/ads/FooterAd';
 import { useQuiz } from '@/hooks/useQuizzes';
 import { useQuizResults } from '@/hooks/useQuizResults';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +13,7 @@ import {
   renderResultTemplate, 
   StrengthsWeaknessesSection 
 } from '@/components/quiz/ResultTemplates';
+import { ScreenshotResult } from '@/components/quiz/ScreenshotResult';
 import { RecommendedQuizzes } from '@/components/quiz/RecommendedQuizzes';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
@@ -121,52 +124,33 @@ const QuizResult = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8 md:py-12">
-        <div className="max-w-2xl mx-auto">
-          {/* Ad Banner Top */}
-          {adCount >= 1 && (
-            <div className="mb-6">
-              <AdBanner slot="result-top" />
-            </div>
-          )}
-
-          {/* User Profile Section */}
-          {twitterUsername && (
-            <div className="flex flex-col items-center mb-6 animate-fade-in">
-              <img 
-                src={`https://unavatar.io/x/${twitterUsername}`} 
-                alt={twitterUsername}
-                className="w-20 h-20 rounded-full border-4 border-primary shadow-lg object-cover mb-2"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-              <p className="text-sm text-muted-foreground">@{twitterUsername}</p>
-            </div>
-          )}
-
-          {/* Result Card - Using Template System */}
-          <div className="animate-scale-in">
-            {renderResultTemplate({
-              ...matchedResult,
-              twitter_username: twitterUsername
-            })}
-            
-            {/* Strengths & Weaknesses */}
-            <StrengthsWeaknessesSection result={matchedResult} />
+      {/* Header Ad */}
+      {adCount >= 1 && <HeaderAd />}
+      
+      <div className="container mx-auto px-2 md:px-4 py-4 md:py-12">
+        <div className="max-w-md mx-auto">
+          {/* Screenshot-friendly Result Card */}
+          <div className="mb-6">
+            <ScreenshotResult 
+              result={{
+                ...matchedResult,
+                twitter_username: twitterUsername
+              }}
+              quizTitle={quiz.title}
+            />
           </div>
 
-          {/* Compatibility Section */}
+          {/* Compatibility Section - Outside screenshot area */}
           {(matchedResult.best_match_type?.length > 0 || matchedResult.worst_match_type?.length > 0) && (
-            <div className="bg-card rounded-2xl p-6 mt-6">
-              <h3 className="font-semibold mb-4 text-center">Kompatibilitas</h3>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="bg-card rounded-2xl p-4 md:p-6 mb-4">
+              <h3 className="font-semibold mb-4 text-center text-sm md:text-base">Kompatibilitas</h3>
+              <div className="grid grid-cols-2 gap-3">
                 {Array.isArray(matchedResult.best_match_type) && matchedResult.best_match_type.length > 0 && (
                   <div className="text-center">
-                    <p className="text-xs text-muted-foreground mb-2">Paling Klik Sama</p>
+                    <p className="text-[10px] md:text-xs text-muted-foreground mb-2">Paling Klik Sama</p>
                     <div className="flex flex-wrap justify-center gap-1">
                       {matchedResult.best_match_type.map((type: string) => (
-                        <span key={type} className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded text-sm font-medium">
+                        <span key={type} className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded text-[10px] md:text-xs font-medium">
                           {matchedResult.best_match_icon || '💕'} {type}
                         </span>
                       ))}
@@ -175,10 +159,10 @@ const QuizResult = () => {
                 )}
                 {Array.isArray(matchedResult.worst_match_type) && matchedResult.worst_match_type.length > 0 && (
                   <div className="text-center">
-                    <p className="text-xs text-muted-foreground mb-2">Paling Cekcok Sama</p>
+                    <p className="text-[10px] md:text-xs text-muted-foreground mb-2">Paling Cekcok Sama</p>
                     <div className="flex flex-wrap justify-center gap-1">
                       {matchedResult.worst_match_type.map((type: string) => (
-                        <span key={type} className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded text-sm font-medium">
+                        <span key={type} className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded text-[10px] md:text-xs font-medium">
                           {matchedResult.worst_match_icon || '💔'} {type}
                         </span>
                       ))}
@@ -191,39 +175,42 @@ const QuizResult = () => {
 
           {/* Middle Ad */}
           {adCount >= 2 && (
-            <div className="my-6">
+            <div className="my-4">
               <AdBanner slot="result-middle" />
             </div>
           )}
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-8">
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
             <Link to={`/quiz/${id}/terms`} className="flex-1">
-              <Button variant="outline" className="w-full gap-2">
+              <Button variant="outline" className="w-full gap-2 text-sm">
                 <RefreshCw className="h-4 w-4" />
                 Ulangi Quiz
               </Button>
             </Link>
             <Link to="/quizzes" className="flex-1">
-              <Button variant="default" className="w-full">
+              <Button variant="default" className="w-full text-sm">
                 Quiz Lainnya
               </Button>
             </Link>
           </div>
 
           {/* Recommended Quizzes */}
-          <div className="mt-8">
+          <div className="mb-6">
             <RecommendedQuizzes currentQuizId={id} currentCategory={quiz.category || undefined} />
           </div>
 
           {/* Ad Banner Bottom */}
           {adCount >= 3 && (
-            <div className="mt-8">
+            <div className="mb-4">
               <AdBanner slot="result-bottom" />
             </div>
           )}
         </div>
       </div>
+      
+      {/* Footer Ad */}
+      {adCount >= 4 && <FooterAd />}
     </Layout>
   );
 };

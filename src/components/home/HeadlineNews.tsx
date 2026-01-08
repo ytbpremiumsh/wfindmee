@@ -4,10 +4,15 @@ import { useArticles } from '@/hooks/useArticles';
 import { Clock, Users, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AdBanner } from '@/components/ads/AdBanner';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 export function HeadlineNews() {
   const { data: quizzes, isLoading: quizzesLoading } = useQuizzes(true);
   const { data: articles, isLoading: articlesLoading } = useArticles(true);
+  const { data: settings } = useSiteSettings();
+  
+  const adsenseEnabled = settings?.adsense?.enabled;
 
   const latestQuizzes = quizzes?.slice(0, 4) || [];
   const latestArticles = articles?.slice(0, 3) || [];
@@ -140,6 +145,13 @@ export function HeadlineNews() {
                 </div>
               </Link>
             ))}
+            
+            {/* Inline Ad in Headline section */}
+            {adsenseEnabled && (
+              <div className="p-2 bg-muted/30 rounded-xl">
+                <AdBanner slot="headline-inline" />
+              </div>
+            )}
           </div>
         </div>
       </div>

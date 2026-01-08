@@ -45,16 +45,16 @@ export function QuizCard({ quiz }: QuizCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
         
         {/* Badge */}
-        <div className="absolute top-3 left-3">
-          <span className={cn("px-2 py-1 rounded-full text-xs font-medium", categoryBadgeClass[category])}>
+        <div className="absolute top-2 left-2 md:top-3 md:left-3">
+          <span className={cn("px-2 py-0.5 md:px-2 md:py-1 rounded-full text-[10px] md:text-xs font-medium", categoryBadgeClass[category])}>
             {categoryLabels[category] || category}
           </span>
         </div>
 
         {/* Featured indicator */}
         {quiz.is_featured && (
-          <div className="absolute top-3 right-3">
-            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-accent text-accent-foreground text-xs font-medium">
+          <div className="absolute top-2 right-2 md:top-3 md:right-3">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 md:px-2 md:py-1 rounded-full bg-accent text-accent-foreground text-[10px] md:text-xs font-medium">
               ⭐ Featured
             </span>
           </div>
@@ -62,25 +62,25 @@ export function QuizCard({ quiz }: QuizCardProps) {
       </div>
 
       {/* Content */}
-      <div className="p-5">
-        <h3 className="text-lg font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+      <div className="p-3 md:p-5">
+        <h3 className="text-sm md:text-lg font-semibold mb-1 md:mb-2 line-clamp-2 group-hover:text-primary transition-colors">
           {quiz.title}
         </h3>
         
-        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+        <p className="text-xs md:text-sm text-muted-foreground mb-2 md:mb-4 line-clamp-2">
           {(quiz.short_description || quiz.description || 'Quiz menarik untuk kamu!').replace(/<[^>]*>/g, '')}
         </p>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Clock className="h-3.5 w-3.5" />
+          <div className="flex items-center gap-1 text-[10px] md:text-xs text-muted-foreground">
+            <Clock className="h-3 w-3 md:h-3.5 md:w-3.5" />
             <span>{quiz.estimated_time || 5} menit</span>
           </div>
 
           <Link to={`/quiz/${quiz.id}`}>
-            <Button variant="ghost" size="sm" className="group/btn -mr-2">
-              Mulai Quiz
-              <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-1" />
+            <Button variant="ghost" size="sm" className="group/btn -mr-2 text-xs md:text-sm h-7 md:h-9 px-2 md:px-3">
+              Mulai
+              <ArrowRight className="h-3 w-3 md:h-3.5 md:w-3.5 transition-transform group-hover/btn:translate-x-1" />
             </Button>
           </Link>
         </div>

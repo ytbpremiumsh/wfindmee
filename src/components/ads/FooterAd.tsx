@@ -43,11 +43,14 @@ export function FooterAd() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-4">
-      <div 
-        ref={adRef}
-        className="w-full"
-      />
+    <div className="w-full overflow-hidden px-2 py-2 md:px-4 md:py-4">
+      <div className="container mx-auto">
+        <div 
+          ref={adRef}
+          className="w-full overflow-hidden"
+          style={{ minHeight: '50px' }}
+        />
+      </div>
     </div>
   );
 }

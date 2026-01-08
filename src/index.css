@@ -132,13 +132,20 @@
 
 @layer components {
   .quiz-card {
-    @apply relative overflow-hidden rounded-2xl bg-card transition-all duration-300;
+    @apply relative overflow-hidden rounded-xl md:rounded-2xl bg-card transition-all duration-300;
     box-shadow: var(--shadow-md);
   }
 
   .quiz-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  @media (min-width: 768px) {
+    .quiz-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-xl);
+    }
   }
 
   .category-badge {

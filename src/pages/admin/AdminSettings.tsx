@@ -51,6 +51,7 @@ const AdminSettings = () => {
     model: 'google/gemini-2.5-flash',
     openrouter_api_key: '',
     prompt_template: '',
+    auto_fill_scores: true,
   });
 
   const [customCode, setCustomCode] = useState({
@@ -106,6 +107,7 @@ const AdminSettings = () => {
           model: settings.ai.model || 'google/gemini-2.5-flash',
           openrouter_api_key: settings.ai.openrouter_api_key || '',
           prompt_template: settings.ai.prompt_template || '',
+          auto_fill_scores: (settings.ai as any).auto_fill_scores !== false,
         });
       }
       if (settings.custom_code) setCustomCode(settings.custom_code);
@@ -311,7 +313,7 @@ const AdminSettings = () => {
               
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="header-html">HTML Iklan Header (Halaman Utama & Artikel)</Label>
+                  <Label htmlFor="header-html">HTML Iklan Header (Semua Halaman: Utama, Quiz, Hasil, Artikel)</Label>
                   <Textarea
                     id="header-html"
                     value={adsense.header_html}
@@ -330,12 +332,12 @@ const AdminSettings = () => {
                     className="font-mono text-sm"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Iklan ini akan muncul di bagian atas (setelah header) pada halaman utama dan artikel.
+                    Iklan ini akan muncul di bagian atas (setelah header) pada halaman utama, quiz, hasil, dan artikel.
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="footer-html">HTML Iklan Footer (Halaman Utama & Artikel)</Label>
+                  <Label htmlFor="footer-html">HTML Iklan Footer (Semua Halaman: Utama, Quiz, Hasil, Artikel)</Label>
                   <Textarea
                     id="footer-html"
                     value={adsense.footer_html}
@@ -354,7 +356,7 @@ const AdminSettings = () => {
                     className="font-mono text-sm"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Iklan ini akan muncul di bagian bawah (sebelum footer) pada halaman utama dan artikel.
+                    Iklan ini akan muncul di bagian bawah (sebelum footer) pada semua halaman.
                   </p>
                 </div>
               </div>
@@ -551,6 +553,21 @@ const AdminSettings = () => {
                 </p>
               </div>
             )}
+
+            {/* Auto-fill personality scores toggle */}
+            <div className="flex items-center justify-between p-4 rounded-xl bg-primary/5 border border-primary/20">
+              <div>
+                <Label htmlFor="auto-fill-scores" className="font-medium">Auto-fill Skor Kepribadian</Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  AI akan otomatis mengisi skor kepribadian untuk setiap jawaban saat membuat quiz baru. Tidak perlu input manual.
+                </p>
+              </div>
+              <Switch
+                id="auto-fill-scores"
+                checked={ai.auto_fill_scores}
+                onCheckedChange={(checked) => setAi({ ...ai, auto_fill_scores: checked })}
+              />
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="ai-prompt">Prompt Template Hasil Quiz</Label>
