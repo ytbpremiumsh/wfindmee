@@ -3,6 +3,8 @@ import { Clock, HelpCircle, ArrowLeft, Play, Loader2 } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { AdBanner } from '@/components/ads/AdBanner';
+import { HeaderAd } from '@/components/ads/HeaderAd';
+import { FooterAd } from '@/components/ads/FooterAd';
 import { useQuiz } from '@/hooks/useQuizzes';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
 import { PopularQuizzesSidebar } from '@/components/quiz/PopularQuizzesSidebar';
@@ -61,6 +63,8 @@ const QuizDetail = () => {
 
   return (
     <Layout>
+      {/* Header Ad */}
+      {adCount >= 1 && <HeaderAd />}
       {/* Hero Banner */}
       <div className="relative h-48 md:h-64 overflow-hidden">
         <img
@@ -166,6 +170,9 @@ const QuizDetail = () => {
           </div>
         </div>
       </div>
+      
+      {/* Footer Ad */}
+      {adCount >= 5 && <FooterAd />}
     </Layout>
   );
 };

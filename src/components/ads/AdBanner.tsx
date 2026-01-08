@@ -65,8 +65,9 @@ export function AdBanner({ slot = 'default' }: AdBannerProps) {
   return (
     <div 
       ref={adRef}
-      className="w-full"
+      className="w-full overflow-hidden"
       data-ad-slot={slot}
+      style={{ minHeight: '50px' }}
     />
   );
 }

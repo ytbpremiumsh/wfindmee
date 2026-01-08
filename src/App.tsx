@@ -49,7 +49,7 @@ const App = () => (
             <Route path="/quiz/:id/result" element={<QuizResult />} />
             <Route path="/about" element={<About />} />
             <Route path="/artikel/:slug" element={<ArticleDetail />} />
-            <Route path="/s/:code" element={<ShortlinkRedirect />} />
+            <Route path="/:code" element={<ShortlinkRedirect />} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
