@@ -81,65 +81,64 @@ serve(async (req) => {
       model = selectedModel;
     }
 
-    const systemPrompt = `Kamu adalah pembuat quiz kepribadian profesional berbahasa Indonesia. 
+    const systemPrompt = `Kamu adalah pembuat quiz kepribadian profesional berbahasa Indonesia.
 
 GAYA PENULISAN:
 ${toneInstruction}
 
-ATURAN MUTLAK YANG HARUS DIIKUTI:
-- Kamu WAJIB menghasilkan TEPAT ${questionCount} pertanyaan (tidak boleh 1, tidak boleh kurang, harus ${questionCount})
-- Setiap pertanyaan WAJIB memiliki TEPAT ${optionCount} pilihan jawaban
-- Kamu WAJIB menghasilkan TEPAT ${resultCount} tipe kepribadian hasil
-- Semua konten HARUS dalam Bahasa Indonesia
-- Terapkan gaya penulisan di atas pada SEMUA pertanyaan, pilihan jawaban, dan deskripsi hasil
+ATURAN MUTLAK:
+1. Hasilkan TEPAT ${questionCount} pertanyaan berbeda-beda
+2. Setiap pertanyaan punya TEPAT ${optionCount} pilihan jawaban
+3. Hasilkan TEPAT ${resultCount} tipe kepribadian hasil
+4. Semua dalam Bahasa Indonesia
 
-ATURAN PENTING UNTUK PERSONALITY_TYPE:
-- personality_type HARUS berupa nama deskriptif yang mudah diingat (contoh: "Pemimpin", "Kreator", "Analitis", "Petualang", dll)
-- JANGAN GUNAKAN "type1", "type2", dll. Gunakan nama yang menggambarkan tipe kepribadian
-- Nama personality_type harus singkat (1-2 kata) dan menarik
+PENTING - PERSONALITY_TYPE:
+- Gunakan nama deskriptif (contoh: "Pemimpin", "Kreator", "Analitis")
+- JANGAN gunakan "type1", "type2"
 
-JANGAN PERNAH menghasilkan hanya 1 pertanyaan. Selalu hasilkan ${questionCount} pertanyaan yang BERBEDA-BEDA.`;
+PENTING - PERSONALITY_SCORES:
+- Setiap pilihan jawaban HARUS punya personality_scores
+- Format: {"NamaTipe1": 4, "NamaTipe2": 2, "NamaTipe3": 1}
+- Skor 1-5 (1=tidak cocok, 5=sangat cocok)`;
 
-    // Generate question topics to help AI diversify
-    const questionTopics = [];
-    for (let i = 1; i <= questionCount; i++) {
-      questionTopics.push(`Pertanyaan ${i}: tentang aspek berbeda dari "${title}"`);
-    }
+    const userPrompt = `Buat quiz kepribadian:
 
-    const userPrompt = `Buatkan quiz kepribadian dengan spesifikasi berikut:
-
-JUDUL QUIZ: "${title}"
+JUDUL: "${title}"
 KATEGORI: ${category}
 
-SPESIFIKASI WAJIB:
-✓ Jumlah Pertanyaan: ${questionCount} pertanyaan (HARUS TEPAT ${questionCount}, BUKAN 1!)
-✓ Pilihan per Pertanyaan: ${optionCount} pilihan
-✓ Tipe Hasil: ${resultCount} tipe kepribadian
+SPESIFIKASI:
+- ${questionCount} pertanyaan
+- ${optionCount} pilihan per pertanyaan  
+- ${resultCount} tipe hasil kepribadian
 
-PANDUAN MEMBUAT ${questionCount} PERTANYAAN:
-${questionTopics.join('\n')}
+STRUKTUR YANG DIBUTUHKAN:
 
-CONTOH TOPIK PERTANYAAN (gunakan sebagai inspirasi untuk ${questionCount} pertanyaan BERBEDA):
-1. Bagaimana cara menghadapi situasi tertentu
-2. Preferensi dalam aktivitas sehari-hari  
-3. Cara berinteraksi dengan orang lain
-4. Kebiasaan saat menghadapi masalah
-5. Preferensi dalam mengambil keputusan
-6. Cara mengekspresikan diri
-7. Prioritas dalam hidup
-8. Reaksi terhadap perubahan
-9. Cara mengelola waktu
-10. Pendekatan terhadap tugas baru
+1. QUESTIONS (array ${questionCount} item):
+{
+  "question_text": "Pertanyaan...",
+  "question_order": 1,
+  "options": [
+    {
+      "option_text": "Pilihan A",
+      "option_order": 1,
+      "personality_scores": {"TipeA": 5, "TipeB": 2, "TipeC": 1, "TipeD": 3}
+    }
+  ]
+}
 
-ATURAN PERSONALITY_TYPE DAN SCORES:
-- Buat ${resultCount} tipe kepribadian dengan NAMA DESKRIPTIF (contoh: "Pemimpin", "Kreator", "Analitis", bukan "type1", "type2")
-- personality_type harus singkat, menarik, dan mudah diingat (1-2 kata dalam Bahasa Indonesia)
-- Setiap pilihan jawaban harus punya personality_scores berupa object dengan key = nama personality_type
-- Contoh personality_scores: {"Pemimpin": 4, "Kreator": 2, "Analitis": 1}
-- Skor range: 1-5 (1=tidak cocok, 5=sangat cocok)
-- Pastikan setiap pilihan memiliki distribusi skor yang masuk akal (tidak semua sama)
+2. RESULTS (array ${resultCount} item):
+{
+  "personality_type": "NamaTipe",
+  "title": "Judul Hasil",
+  "description": "Deskripsi lengkap...",
+  "strengths": ["Kelebihan 1", "Kelebihan 2", "Kelebihan 3"],
+  "weaknesses": ["Kelemahan 1", "Kelemahan 2", "Kelemahan 3"]
+}
 
-INGAT: Kamu HARUS menghasilkan TEPAT ${questionCount} pertanyaan dalam array questions. Tidak boleh kurang!`;
+PASTIKAN:
+- Nama personality_type di results SAMA dengan key di personality_scores
+- Setiap pilihan jawaban punya skor untuk SEMUA ${resultCount} tipe kepribadian`;
+
 
     console.log('Calling AI API:', apiUrl, 'model:', model);
 
@@ -263,8 +262,44 @@ INGAT: Kamu HARUS menghasilkan TEPAT ${questionCount} pertanyaan dalam array que
       throw new Error('AI did not generate any questions');
     }
 
+    // If results are missing, generate default results based on personality types found in questions
     if (!quizContent.results || quizContent.results.length === 0) {
-      throw new Error('AI did not generate any results');
+      console.log('No results from AI, generating from personality scores...');
+      
+      // Extract personality types from options
+      const personalityTypes = new Set<string>();
+      for (const question of quizContent.questions) {
+        for (const option of question.options || []) {
+          if (option.personality_scores) {
+            Object.keys(option.personality_scores).forEach(type => personalityTypes.add(type));
+          }
+        }
+      }
+      
+      // If we found personality types, create results for them
+      if (personalityTypes.size > 0) {
+        quizContent.results = Array.from(personalityTypes).map((type, index) => ({
+          personality_type: type,
+          title: `Tipe ${type}`,
+          description: `Kamu adalah tipe ${type}. Ini menunjukkan karakteristik unik yang kamu miliki.`,
+          strengths: ['Unik', 'Autentik', 'Konsisten'],
+          weaknesses: ['Perlu pengembangan', 'Bisa lebih fleksibel']
+        }));
+        console.log(`Generated ${quizContent.results.length} fallback results from personality types`);
+      } else {
+        // Last resort: create generic results
+        quizContent.results = [];
+        for (let i = 0; i < resultCount; i++) {
+          quizContent.results.push({
+            personality_type: `Tipe${i + 1}`,
+            title: `Kepribadian Tipe ${i + 1}`,
+            description: `Deskripsi untuk tipe kepribadian ${i + 1}.`,
+            strengths: ['Kelebihan 1', 'Kelebihan 2'],
+            weaknesses: ['Kelemahan 1', 'Kelemahan 2']
+          });
+        }
+        console.log(`Generated ${resultCount} generic fallback results`);
+      }
     }
 
     // Log warning if question count doesn't match
