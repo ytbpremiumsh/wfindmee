@@ -15,7 +15,8 @@ import {
   Loader2,
   X,
   ImagePlus,
-  Info
+  Info,
+  Sparkles
 } from 'lucide-react';
 import { useQuiz } from '@/hooks/useQuizzes';
 import { useQuizQuestions, useCreateQuestion, useUpdateQuestion, useDeleteQuestion } from '@/hooks/useQuizQuestions';
@@ -51,6 +52,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface QuestionOption {
   option_text: string;
@@ -85,6 +87,7 @@ const AdminQuizQuestions = () => {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
   const [deleteQuestionId, setDeleteQuestionId] = useState<string | null>(null);
+  const [isGeneratingScores, setIsGeneratingScores] = useState(false);
   
   const [formData, setFormData] = useState<QuestionForm>({
     question_text: '',
@@ -99,6 +102,88 @@ const AdminQuizQuestions = () => {
   });
 
   const isLoading = isQuizLoading || isQuestionsLoading;
+
+  // Function to generate AI scores
+  const handleGenerateAIScores = async () => {
+    if (!formData.question_text.trim()) {
+      toast({
+        title: 'Teks pertanyaan wajib diisi',
+        description: 'Isi pertanyaan terlebih dahulu sebelum generate skor.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const validOptions = formData.options.filter(opt => opt.option_text.trim());
+    if (validOptions.length < 2) {
+      toast({
+        title: 'Minimal 2 pilihan dengan teks',
+        description: 'Isi minimal 2 pilihan jawaban terlebih dahulu.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (personalityTypes.length === 0) {
+      toast({
+        title: 'Belum ada hasil quiz',
+        description: 'Tambahkan hasil quiz terlebih dahulu di halaman Kelola Hasil.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsGeneratingScores(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-scores', {
+        body: {
+          questionText: formData.question_text,
+          options: validOptions.map(opt => ({
+            option_text: opt.option_text,
+            option_order: opt.option_order,
+          })),
+          personalityTypes: quizResults?.map(r => ({
+            personality_type: r.personality_type,
+            title: r.title,
+            description: r.description,
+          })) || [],
+          quizTitle: quiz?.title,
+        }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.scores) {
+        // Update formData with generated scores
+        const newOptions = [...formData.options];
+        data.scores.forEach((scoreData: any) => {
+          const optionIndex = newOptions.findIndex(opt => opt.option_order === scoreData.option_order);
+          if (optionIndex !== -1) {
+            newOptions[optionIndex] = {
+              ...newOptions[optionIndex],
+              personality_scores: scoreData.personality_scores || {},
+            };
+          }
+        });
+        setFormData({ ...formData, options: newOptions });
+        
+        toast({
+          title: 'Skor berhasil di-generate!',
+          description: 'AI telah mengisi skor kepribadian untuk setiap pilihan.',
+        });
+      }
+    } catch (error: any) {
+      console.error('Error generating scores:', error);
+      toast({
+        title: 'Gagal generate skor',
+        description: error.message || 'Terjadi kesalahan saat generate skor AI.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingScores(false);
+    }
+  };
 
   const handleAddQuestion = () => {
     setEditingQuestion(null);
@@ -429,12 +514,31 @@ const AdminQuizQuestions = () => {
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <Label>Pilihan Jawaban</Label>
-                <Button type="button" variant="outline" size="sm" onClick={handleAddOption}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Tambah Pilihan
-                </Button>
+                <div className="flex gap-2">
+                  {personalityTypes.length > 0 && (
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleGenerateAIScores}
+                      disabled={isGeneratingScores}
+                      className="gap-1"
+                    >
+                      {isGeneratingScores ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-4 w-4" />
+                      )}
+                      Generate AI Skor
+                    </Button>
+                  )}
+                  <Button type="button" variant="outline" size="sm" onClick={handleAddOption}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Tambah Pilihan
+                  </Button>
+                </div>
               </div>
 
               {formData.options.map((option, index) => (
