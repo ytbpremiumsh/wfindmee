@@ -73,6 +73,7 @@ export function QuizEditorDialog({ open, onOpenChange, quizId }: QuizEditorDialo
     model: '',
     openrouterApiKey: '',
     tone: 'netral' as string,
+    autoFillScores: true, // Auto-fill personality scores by default
   });
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -423,6 +424,23 @@ export function QuizEditorDialog({ open, onOpenChange, quizId }: QuizEditorDialo
                         AI akan menyesuaikan gaya penulisan sesuai pilihan ini
                       </p>
                     </div>
+                    </div>
+
+                    {/* Auto-fill Scores Toggle */}
+                    <div className="flex items-center justify-between bg-background/50 rounded-lg p-3 border">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="autoFillScores" className="text-sm font-medium">
+                          Auto-fill Skor Kepribadian
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          AI otomatis mengisi point skor untuk setiap jawaban berdasarkan tipe hasil
+                        </p>
+                      </div>
+                      <Switch
+                        id="autoFillScores"
+                        checked={aiSettings.autoFillScores}
+                        onCheckedChange={(checked) => setAiSettings({ ...aiSettings, autoFillScores: checked })}
+                      />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
