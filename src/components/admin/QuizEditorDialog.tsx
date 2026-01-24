@@ -224,7 +224,61 @@ export function QuizEditorDialog({ open, onOpenChange, quizId }: QuizEditorDialo
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Deskripsi Lengkap</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="description">Deskripsi Lengkap</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    if (!formData.title) {
+                      toast({
+                        title: 'Judul diperlukan',
+                        description: 'Masukkan judul quiz terlebih dahulu untuk generate deskripsi.',
+                        variant: 'destructive',
+                      });
+                      return;
+                    }
+                    setIsGenerating(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke('generate-description', {
+                        body: {
+                          title: formData.title,
+                          category: formData.category,
+                          tone: aiSettings.tone,
+                        }
+                      });
+                      if (error) throw error;
+                      if (data?.error) throw new Error(data.error);
+                      if (data?.description) {
+                        setFormData({ ...formData, description: data.description });
+                        toast({
+                          title: 'Berhasil!',
+                          description: 'Deskripsi berhasil di-generate.',
+                        });
+                      }
+                    } catch (error: any) {
+                      console.error('Error generating description:', error);
+                      toast({
+                        title: 'Gagal generate deskripsi',
+                        description: error.message || 'Silakan coba lagi.',
+                        variant: 'destructive',
+                      });
+                    } finally {
+                      setIsGenerating(false);
+                    }
+                  }}
+                  disabled={isGenerating || !formData.title}
+                  className="gap-1"
+                >
+                  {isGenerating ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3 w-3" />
+                  )}
+                  Generate AI
+                </Button>
+              </div>
               <RichTextEditor
                 value={formData.description}
                 onChange={(value) => setFormData({ ...formData, description: value })}
