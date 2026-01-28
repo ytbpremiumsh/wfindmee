@@ -1,11 +1,17 @@
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Loader2, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuiz } from '@/hooks/useQuizzes';
+import { AdBanner } from '@/components/ads/AdBanner';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const QuizIframe = () => {
   const { id } = useParams<{ id: string }>();
   const { data: quiz, isLoading } = useQuiz(id);
+  const { data: settings } = useSiteSettings();
+  
+  const adsenseSettings = settings?.adsense;
+  const showAds = adsenseSettings?.enabled && adsenseSettings?.script_code;
 
   if (isLoading) {
     return (
@@ -33,7 +39,7 @@ const QuizIframe = () => {
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
-      {/* Minimal Header - Fixed Height */}
+      {/* Minimal Header */}
       <div className="flex-shrink-0 h-12 bg-background border-b border-border flex items-center px-4">
         <Link 
           to={`/quiz/${id}`} 
@@ -45,6 +51,13 @@ const QuizIframe = () => {
         <h1 className="flex-1 text-center font-semibold text-sm truncate px-4">{quiz.title}</h1>
         <div className="w-10" />
       </div>
+
+      {/* Ad Banner - Top */}
+      {showAds && (
+        <div className="flex-shrink-0 bg-muted/30 py-2">
+          <AdBanner />
+        </div>
+      )}
 
       {/* Iframe - Takes All Remaining Space */}
       <iframe
