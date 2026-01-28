@@ -43,15 +43,7 @@ const QuizIframe = () => {
           <span className="hidden sm:inline text-sm">Kembali</span>
         </Link>
         <h1 className="flex-1 text-center font-semibold text-sm truncate px-4">{quiz.title}</h1>
-        <a 
-          href={quiz.iframe_url} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="inline-flex items-center justify-center p-2 text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Buka di tab baru"
-        >
-          <ExternalLink className="h-4 w-4" />
-        </a>
+        <div className="w-10" />
       </div>
 
       {/* Iframe - Takes All Remaining Space */}
