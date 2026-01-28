@@ -4,8 +4,10 @@ import { ArrowLeft, ArrowRight, CheckCircle, Loader2, AtSign, User } from 'lucid
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { AdBanner } from '@/components/ads/AdBanner';
 import { useQuiz } from '@/hooks/useQuizzes';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { cn } from '@/lib/utils';
 
 const QuizPlay = () => {
@@ -13,12 +15,17 @@ const QuizPlay = () => {
   const navigate = useNavigate();
   const { data: quiz, isLoading: quizLoading } = useQuiz(id);
   const { data: questions, isLoading: questionsLoading } = useQuizQuestions(id);
+  const { data: settings } = useSiteSettings();
   
   const [currentIndex, setCurrentIndex] = useState(-1); // -1 means username input screen
   const [answers, setAnswers] = useState<Record<string, { optionId: string; scores: Record<string, number> }>>({});
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [selectedScores, setSelectedScores] = useState<Record<string, number> | null>(null);
   const [twitterUsername, setTwitterUsername] = useState('');
+  
+  // Get ad settings for play page
+  const adSettings = (settings as any)?.ad_placements?.play || { count: 2 };
+  const adCount = adSettings.count || 2;
 
   const isLoading = quizLoading || questionsLoading;
 
@@ -207,6 +214,13 @@ const QuizPlay = () => {
   return (
     <Layout showFooter={false}>
       <div className="min-h-[calc(100vh-4rem)] flex flex-col">
+        {/* Top Ad Banner */}
+        {adCount >= 1 && (
+          <div className="container mx-auto px-4 py-2">
+            <AdBanner slot="play-top" />
+          </div>
+        )}
+        
         {/* Progress Header */}
         <div className="sticky top-16 bg-background/95 backdrop-blur-sm border-b border-border z-10">
           <div className="container mx-auto px-4 py-4">
@@ -317,6 +331,13 @@ const QuizPlay = () => {
             </div>
           </div>
         </div>
+        
+        {/* Bottom Ad Banner */}
+        {adCount >= 2 && (
+          <div className="container mx-auto px-4 py-2">
+            <AdBanner slot="play-bottom" />
+          </div>
+        )}
       </div>
     </Layout>
   );
