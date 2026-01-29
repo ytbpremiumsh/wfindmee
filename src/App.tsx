@@ -16,6 +16,7 @@ import QuizResult from "./pages/QuizResult";
 import About from "./pages/About";
 import ArticleDetail from "./pages/ArticleDetail";
 import ShortlinkRedirect from "./pages/ShortlinkRedirect";
+import ShortlinkRedirectLegacy from "./pages/ShortlinkRedirectLegacy";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminQuizzes from "./pages/admin/AdminQuizzes";
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/quiz/:id/result" element={<QuizResult />} />
             <Route path="/about" element={<About />} />
             <Route path="/artikel/:slug" element={<ArticleDetail />} />
+            <Route path="/s/:code" element={<ShortlinkRedirectLegacy />} />
             <Route path="/:code" element={<ShortlinkRedirect />} />
             
             {/* Admin Routes */}
