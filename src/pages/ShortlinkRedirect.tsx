@@ -8,11 +8,12 @@ const ShortlinkRedirect = () => {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(true);
 
   useEffect(() => {
     const redirect = async () => {
       if (!code) {
-        navigate('/');
+        navigate('/', { replace: true });
         return;
       }
 
@@ -25,9 +26,14 @@ const ShortlinkRedirect = () => {
           .eq('is_active', true)
           .maybeSingle();
 
-        if (fetchError) throw fetchError;
+        if (fetchError) {
+          console.error('Fetch error:', fetchError);
+          throw fetchError;
+        }
 
         if (!shortlink) {
+          // Not a valid shortlink, let the app continue to 404
+          setIsProcessing(false);
           setError('Shortlink tidak ditemukan atau sudah tidak aktif');
           return;
         }
@@ -36,29 +42,41 @@ const ShortlinkRedirect = () => {
         const userAgent = navigator.userAgent;
         const { deviceType, browser, os } = parseUserAgent(userAgent);
 
-        // Record the click (don't wait for it to complete)
-        supabase
-          .from('shortlink_clicks')
-          .insert({
-            shortlink_id: shortlink.id,
-            user_agent: userAgent,
-            device_type: deviceType,
-            browser,
-            os,
-            referer: document.referrer || null,
-          })
-          .then(() => {
-            // Update click count
-            supabase
-              .from('shortlinks')
-              .update({ click_count: (shortlink.click_count || 0) + 1 })
-              .eq('id', shortlink.id);
-          });
+        // Record the click - the trigger will auto-increment click_count
+        try {
+          await supabase
+            .from('shortlink_clicks')
+            .insert({
+              shortlink_id: shortlink.id,
+              user_agent: userAgent,
+              device_type: deviceType,
+              browser,
+              os,
+              referer: document.referrer || null,
+            });
+        } catch (clickError) {
+          // Don't block redirect if click tracking fails
+          console.error('Click tracking error:', clickError);
+        }
 
-        // Redirect to target URL
-        window.location.href = shortlink.target_url;
+        // Redirect to target URL - supports any domain
+        const targetUrl = shortlink.target_url;
+        
+        // Ensure the URL is valid
+        try {
+          new URL(targetUrl);
+          window.location.href = targetUrl;
+        } catch {
+          // If no protocol, add https://
+          if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+            window.location.href = `https://${targetUrl}`;
+          } else {
+            window.location.href = targetUrl;
+          }
+        }
       } catch (err) {
         console.error('Redirect error:', err);
+        setIsProcessing(false);
         setError('Terjadi kesalahan saat memproses shortlink');
       }
     };
@@ -83,12 +101,17 @@ const ShortlinkRedirect = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background">
-      <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-      <p className="text-muted-foreground">Mengalihkan...</p>
-    </div>
-  );
+  // Still loading/processing
+  if (isProcessing && !error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Mengalihkan...</p>
+      </div>
+    );
+  }
+
+  return null;
 };
 
 export default ShortlinkRedirect;

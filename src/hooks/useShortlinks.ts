@@ -177,7 +177,7 @@ export function useRecordClick() {
       shortlinkId: string; 
       clickData: Omit<ShortlinkClick, 'id' | 'shortlink_id' | 'clicked_at'> 
     }) => {
-      // Insert click record
+      // Insert click record - trigger will auto-increment click_count
       const { error: clickError } = await supabase
         .from('shortlink_clicks')
         .insert({
@@ -186,18 +186,6 @@ export function useRecordClick() {
         });
       
       if (clickError) throw clickError;
-
-      // Increment click count manually
-      const { data: current } = await supabase
-        .from('shortlinks')
-        .select('click_count')
-        .eq('id', shortlinkId)
-        .single();
-      
-      await supabase
-        .from('shortlinks')
-        .update({ click_count: (current?.click_count || 0) + 1 })
-        .eq('id', shortlinkId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shortlinks'] });
