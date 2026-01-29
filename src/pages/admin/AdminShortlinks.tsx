@@ -126,7 +126,7 @@ const AdminShortlinks = () => {
   };
 
   const copyToClipboard = (shortCode: string) => {
-    navigator.clipboard.writeText(`${baseUrl}/s/${shortCode}`);
+    navigator.clipboard.writeText(`${baseUrl}/${shortCode}`);
     toast({ title: 'Link berhasil disalin!' });
   };
 
@@ -202,7 +202,7 @@ const AdminShortlinks = () => {
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    URL: {baseUrl}/s/{formData.short_code || '...'}
+                    URL: {baseUrl}/{formData.short_code || '...'}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -263,7 +263,7 @@ const AdminShortlinks = () => {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <code className="text-xs bg-muted px-2 py-1 rounded">
-                          /s/{link.short_code}
+                          /{link.short_code}
                         </code>
                         <Button
                           variant="ghost"
