@@ -8,6 +8,7 @@ import { Sparkles, ArrowRight, Clock, HelpCircle } from 'lucide-react';
 interface Quiz {
   id: string;
   title: string;
+  slug: string | null;
   thumbnail_url: string | null;
   short_description: string | null;
   category: string | null;
@@ -27,7 +28,7 @@ export function RecommendedQuizzes({
       // First try to get quizzes from the same category
       let query = supabase
         .from('quizzes')
-        .select('id, title, thumbnail_url, short_description, category, estimated_time')
+        .select('id, title, slug, thumbnail_url, short_description, category, estimated_time')
         .eq('status', 'published')
         .neq('id', currentQuizId || '')
         .limit(6);
@@ -48,7 +49,7 @@ export function RecommendedQuizzes({
 
       const { data: otherQuizzes } = await supabase
         .from('quizzes')
-        .select('id, title, thumbnail_url, short_description, category, estimated_time')
+        .select('id, title, slug, thumbnail_url, short_description, category, estimated_time')
         .eq('status', 'published')
         .not('id', 'in', `(${existingIds.join(',')})`)
         .order('created_at', { ascending: false })
@@ -107,7 +108,7 @@ export function RecommendedQuizzes({
         {quizzes.map((quiz) => (
           <Link
             key={quiz.id}
-            to={`/quiz/${quiz.id}`}
+            to={`/quiz/${quiz.slug || quiz.id}`}
             className="group bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all"
           >
             <div className="aspect-video relative overflow-hidden bg-secondary">

@@ -10,7 +10,7 @@ const QuizTerms = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: quiz, isLoading } = useQuiz(id);
-  const { data: questions } = useQuizQuestions(id);
+  const { data: questions } = useQuizQuestions(quiz?.id);
 
   if (isLoading) {
     return (
@@ -38,6 +38,9 @@ const QuizTerms = () => {
     );
   }
 
+  // Use slug if available, fallback to id
+  const quizSlug = quiz.slug || quiz.id;
+
   // Check if quiz is iframe type
   const isIframeQuiz = quiz.is_iframe && quiz.iframe_url;
 
@@ -45,9 +48,9 @@ const QuizTerms = () => {
 
   const handleStart = () => {
     if (isIframeQuiz) {
-      navigate(`/quiz/${id}/iframe`);
+      navigate(`/quiz/${quizSlug}/iframe`);
     } else {
-      navigate(`/quiz/${id}/play`);
+      navigate(`/quiz/${quizSlug}/play`);
     }
   };
 
@@ -75,7 +78,7 @@ const QuizTerms = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-xl mx-auto">
             {/* Back Button */}
-            <Link to={`/quiz/${id}`} className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors">
+            <Link to={`/quiz/${quizSlug}`} className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors">
               <ArrowLeft className="h-4 w-4" />
               Kembali ke Detail Quiz
             </Link>

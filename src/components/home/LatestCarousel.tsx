@@ -73,7 +73,7 @@ export function LatestCarousel() {
           {items.map((item, idx) => (
             <Link
               key={`${item.type}-${item.id}`}
-              to={item.type === 'quiz' ? `/quiz/${item.id}` : `/artikel/${(item as any).slug}`}
+              to={item.type === 'quiz' ? `/quiz/${(item as any).slug || item.id}` : `/artikel/${(item as any).slug}`}
               className="w-72 shrink-0 bg-card rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow group"
               style={{ scrollSnapAlign: 'start' }}
             >

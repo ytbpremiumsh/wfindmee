@@ -25,7 +25,7 @@ const QuizDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: quiz, isLoading } = useQuiz(id);
-  const { data: questions } = useQuizQuestions(id);
+  const { data: questions } = useQuizQuestions(quiz?.id);
   const { data: settings } = useSiteSettings();
 
   // Get ad count settings for quiz page
@@ -128,7 +128,7 @@ const QuizDetail = () => {
                   variant="hero" 
                   size="lg" 
                   className="w-full md:w-auto"
-                  onClick={() => navigate(`/quiz/${id}/terms`)}
+                  onClick={() => navigate(`/quiz/${quiz.slug || quiz.id}/terms`)}
                 >
                   <Play className="h-5 w-5" />
                   Mulai Quiz

@@ -10,6 +10,7 @@ interface PopularQuiz {
   quiz: {
     id: string;
     title: string;
+    slug: string | null;
     thumbnail_url: string | null;
     short_description: string | null;
     category: string | null;
@@ -45,7 +46,7 @@ export function PopularQuizzesSidebar({ currentQuizId }: { currentQuizId?: strin
         // Fallback: get latest published quizzes
         const { data: latestQuizzes } = await supabase
           .from('quizzes')
-          .select('id, title, thumbnail_url, short_description, category')
+          .select('id, title, slug, thumbnail_url, short_description, category')
           .eq('status', 'published')
           .neq('id', currentQuizId || '')
           .order('created_at', { ascending: false })
@@ -61,7 +62,7 @@ export function PopularQuizzesSidebar({ currentQuizId }: { currentQuizId?: strin
       // Fetch quiz details
       const { data: quizzes } = await supabase
         .from('quizzes')
-        .select('id, title, thumbnail_url, short_description, category')
+        .select('id, title, slug, thumbnail_url, short_description, category')
         .eq('status', 'published')
         .in('id', topQuizIds);
 
@@ -119,7 +120,7 @@ export function PopularQuizzesSidebar({ currentQuizId }: { currentQuizId?: strin
       {popularQuizzes.map((item) => (
         <Link
           key={item.quiz_id}
-          to={`/quiz/${item.quiz_id}`}
+          to={`/quiz/${item.quiz.slug || item.quiz_id}`}
           className="flex gap-3 group hover:bg-secondary/50 rounded-lg p-2 -mx-2 transition-colors"
         >
           <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-secondary">
