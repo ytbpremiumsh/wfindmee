@@ -14,7 +14,7 @@ const QuizPlay = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: quiz, isLoading: quizLoading } = useQuiz(id);
-  const { data: questions, isLoading: questionsLoading } = useQuizQuestions(id);
+  const { data: questions, isLoading: questionsLoading } = useQuizQuestions(quiz?.id);
   const { data: settings } = useSiteSettings();
   
   const [currentIndex, setCurrentIndex] = useState(-1); // -1 means username input screen
@@ -174,7 +174,9 @@ const QuizPlay = () => {
         });
       });
       
-      navigate(`/quiz/${id}/result`, { 
+      // Use slug if available, fallback to id
+      const quizSlug = quiz?.slug || quiz?.id || id;
+      navigate(`/quiz/${quizSlug}/result`, { 
         state: { 
           answers: newAnswers, 
           totalScores,

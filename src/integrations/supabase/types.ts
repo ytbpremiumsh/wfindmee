@@ -289,6 +289,7 @@ export type Database = {
           is_featured: boolean | null
           is_iframe: boolean | null
           short_description: string | null
+          slug: string | null
           status: Database["public"]["Enums"]["quiz_status"] | null
           thumbnail_url: string | null
           title: string
@@ -307,6 +308,7 @@ export type Database = {
           is_featured?: boolean | null
           is_iframe?: boolean | null
           short_description?: string | null
+          slug?: string | null
           status?: Database["public"]["Enums"]["quiz_status"] | null
           thumbnail_url?: string | null
           title: string
@@ -325,6 +327,7 @@ export type Database = {
           is_featured?: boolean | null
           is_iframe?: boolean | null
           short_description?: string | null
+          slug?: string | null
           status?: Database["public"]["Enums"]["quiz_status"] | null
           thumbnail_url?: string | null
           title?: string
@@ -511,6 +514,42 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      website_redirects: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          redirect_type: string | null
+          source_domain: string
+          target_url: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          redirect_type?: string | null
+          source_domain: string
+          target_url: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          redirect_type?: string | null
+          source_domain?: string
+          target_url?: string
+          updated_at?: string
         }
         Relationships: []
       }

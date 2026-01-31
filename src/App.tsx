@@ -27,6 +27,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminContent from "./pages/admin/AdminContent";
 import AdminDataExport from "./pages/admin/AdminDataExport";
 import AdminShortlinks from "./pages/admin/AdminShortlinks";
+import AdminWebsiteRedirects from "./pages/admin/AdminWebsiteRedirects";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -98,6 +99,11 @@ const App = () => (
             <Route path="/admin/shortlinks" element={
               <ProtectedRoute requireAdmin>
                 <AdminShortlinks />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/website-redirects" element={
+              <ProtectedRoute requireAdmin>
+                <AdminWebsiteRedirects />
               </ProtectedRoute>
             } />
             

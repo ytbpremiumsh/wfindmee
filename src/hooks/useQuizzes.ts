@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Database } from '@/integrations/supabase/types';
+import { slugify, generateUniqueSlug } from '@/lib/slugify';
 
 type Quiz = Database['public']['Tables']['quizzes']['Row'];
 type QuizInsert = Database['public']['Tables']['quizzes']['Insert'];
@@ -29,23 +30,36 @@ export function useQuizzes(onlyPublished = false) {
   });
 }
 
-export function useQuiz(id: string | undefined) {
+export function useQuiz(idOrSlug: string | undefined) {
   return useQuery({
-    queryKey: ['quiz', id],
+    queryKey: ['quiz', idOrSlug],
     queryFn: async () => {
-      if (!id) return null;
+      if (!idOrSlug) return null;
       
-      const { data, error } = await supabase
-        .from('quizzes')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
+      // Check if it's a UUID or a slug
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
+      
+      let query = supabase.from('quizzes').select('*');
+      
+      if (isUuid) {
+        query = query.eq('id', idOrSlug);
+      } else {
+        query = query.eq('slug', idOrSlug);
+      }
+      
+      const { data, error } = await query.maybeSingle();
       
       if (error) throw error;
       return data as Quiz | null;
     },
-    enabled: !!id,
+    enabled: !!idOrSlug,
   });
+}
+
+// Helper to get all existing slugs
+async function getExistingSlugs(): Promise<string[]> {
+  const { data } = await supabase.from('quizzes').select('slug');
+  return (data || []).map(q => q.slug).filter(Boolean) as string[];
 }
 
 export function useCreateQuiz() {
@@ -53,9 +67,17 @@ export function useCreateQuiz() {
   
   return useMutation({
     mutationFn: async (quiz: QuizInsert) => {
+      // Generate slug from title if not provided
+      let slug = quiz.slug;
+      if (!slug && quiz.title) {
+        const baseSlug = slugify(quiz.title);
+        const existingSlugs = await getExistingSlugs();
+        slug = generateUniqueSlug(baseSlug, existingSlugs);
+      }
+      
       const { data, error } = await supabase
         .from('quizzes')
-        .insert(quiz)
+        .insert({ ...quiz, slug })
         .select()
         .single();
       
@@ -84,9 +106,19 @@ export function useUpdateQuiz() {
   
   return useMutation({
     mutationFn: async ({ id, ...updates }: QuizUpdate & { id: string }) => {
+      // If title changed and no slug provided, regenerate slug
+      let slug = updates.slug;
+      if (updates.title && !slug) {
+        const baseSlug = slugify(updates.title);
+        const existingSlugs = await getExistingSlugs();
+        // Filter out current quiz's slug
+        const filteredSlugs = existingSlugs.filter(s => s !== baseSlug);
+        slug = generateUniqueSlug(baseSlug, filteredSlugs);
+      }
+      
       const { data, error } = await supabase
         .from('quizzes')
-        .update(updates)
+        .update({ ...updates, ...(slug ? { slug } : {}) })
         .eq('id', id)
         .select()
         .single();

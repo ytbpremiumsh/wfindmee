@@ -31,12 +31,15 @@ const QuizIframe = () => {
     );
   }
 
+  // Use slug if available
+  const quizSlug = quiz.slug || quiz.id;
+
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       {/* Minimal Header */}
       <div className="flex-shrink-0 h-12 bg-background border-b border-border flex items-center px-4">
         <Link 
-          to={`/quiz/${id}`} 
+          to={`/quiz/${quizSlug}`} 
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />

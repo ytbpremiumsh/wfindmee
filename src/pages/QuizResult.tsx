@@ -21,7 +21,7 @@ const QuizResult = () => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const { data: quiz, isLoading: quizLoading } = useQuiz(id);
-  const { data: results, isLoading: resultsLoading } = useQuizResults(id);
+  const { data: results, isLoading: resultsLoading } = useQuizResults(quiz?.id);
   const { data: settings } = useSiteSettings();
   const [matchedResult, setMatchedResult] = useState<any>(null);
   
@@ -82,7 +82,7 @@ const QuizResult = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       await supabase.from('user_quiz_attempts').insert({
-        quiz_id: id,
+        quiz_id: quiz?.id,
         user_id: user?.id || null,
         answers: answers || {},
         scores: totalScores || {},
@@ -182,7 +182,7 @@ const QuizResult = () => {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <Link to={`/quiz/${id}/terms`} className="flex-1">
+            <Link to={`/quiz/${quiz.slug || quiz.id}/terms`} className="flex-1">
               <Button variant="outline" className="w-full gap-2 text-sm">
                 <RefreshCw className="h-4 w-4" />
                 Ulangi Quiz

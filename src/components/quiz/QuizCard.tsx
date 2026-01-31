@@ -77,7 +77,7 @@ export function QuizCard({ quiz }: QuizCardProps) {
             <span>{quiz.estimated_time || 5} menit</span>
           </div>
 
-          <Link to={`/quiz/${quiz.id}`}>
+          <Link to={`/quiz/${quiz.slug || quiz.id}`}>
             <Button variant="ghost" size="sm" className="group/btn -mr-2 text-xs md:text-sm h-7 md:h-9 px-2 md:px-3">
               Mulai
               <ArrowRight className="h-3 w-3 md:h-3.5 md:w-3.5 transition-transform group-hover/btn:translate-x-1" />

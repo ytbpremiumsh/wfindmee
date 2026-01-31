@@ -148,7 +148,7 @@ const AdminQuizzes = () => {
                         <div>
                           <p className="font-medium line-clamp-1">{quiz.title}</p>
                           <p className="text-xs text-muted-foreground line-clamp-1">
-                            {quiz.short_description || 'Tidak ada deskripsi'}
+                            /quiz/{quiz.slug || quiz.id}
                           </p>
                         </div>
                       </div>
@@ -195,7 +195,7 @@ const AdminQuizzes = () => {
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8"
-                          onClick={() => window.open(`/quiz/${quiz.id}`, '_blank')}
+                          onClick={() => window.open(`/quiz/${quiz.slug || quiz.id}`, '_blank')}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
