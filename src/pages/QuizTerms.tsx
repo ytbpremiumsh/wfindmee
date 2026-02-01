@@ -136,6 +136,11 @@ const QuizTerms = () => {
                 )}
               </div>
 
+              {/* Ad Above CTA */}
+              <div className="mb-6">
+                <AdBanner slot="terms-above-cta" />
+              </div>
+
               {/* CTA */}
               <Button 
                 variant="hero" 
